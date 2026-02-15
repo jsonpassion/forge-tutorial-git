@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Git-2.40+-F05032?logo=git&logoColor=white" alt="Git 2.40+">
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue" alt="License">
   <img src="https://img.shields.io/badge/Language-한국어-brightgreen" alt="Korean">
-  <img src="https://img.shields.io/badge/Sections-32%2F56-orange" alt="Progress">
+  <img src="https://img.shields.io/badge/Sections-36%2F56-orange" alt="Progress">
 </p>
 
 ---
@@ -31,11 +31,11 @@
 Part 1  ██████████████████████████████████████████  100%  Ch1-2 완료
 Part 2  ██████████████████████████████████████████  100%  Ch3-4 완료
 Part 3  ██████████████████████████████████████████  100%  Ch5-7 완료
-Part 4  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    0%  Ch8-9
+Part 4  █████████████████████░░░░░░░░░░░░░░░░░░░░░   50%  Ch8-9
 Part 5  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    0%  Ch10-12
 ```
 
-**전체**: 32 / 56 섹션 완료 (57%)
+**전체**: 36 / 56 섹션 완료 (64%)
 
 ---
 
@@ -138,14 +138,14 @@ Part 5  ░░░░░░░░░░░░░░░░░░░░░░░░
 ### Part 4: 고급 Git (중상급)
 
 <details>
-<summary><strong>Ch8. Rebase와 고급 브랜치 전략</strong> — 0/4</summary>
+<summary><strong>Ch8. Rebase와 고급 브랜치 전략</strong> — 4/4 ✅</summary>
 
 | # | 섹션 | 설명 |
 |:-:|------|------|
-| 01 | Rebase 기초 | rebase vs merge, 리베이스 원리, 언제 사용해야 하는가 |
-| 02 | Interactive Rebase | squash, fixup, reword, edit, drop — 히스토리 다듬기 |
-| 03 | Cherry-pick | 특정 커밋만 가져오기, 충돌 처리, 활용 시나리오 |
-| 04 | 워크플로우 전략 | Git Flow, GitHub Flow, Trunk-Based Development 비교 |
+| 01 | [Rebase 기초](08-advanced-branch/01-rebase.md) | rebase vs merge, 리베이스 원리, 언제 사용해야 하는가 |
+| 02 | [Interactive Rebase](08-advanced-branch/02-interactive-rebase.md) | squash, fixup, reword, edit, drop — 히스토리 다듬기 |
+| 03 | [Cherry-pick](08-advanced-branch/03-cherry-pick.md) | 특정 커밋만 가져오기, 충돌 처리, 활용 시나리오 |
+| 04 | [워크플로우 전략](08-advanced-branch/04-workflow-strategies.md) | Git Flow, GitHub Flow, Trunk-Based Development 비교 |
 
 </details>
 
