@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Git-2.40+-F05032?logo=git&logoColor=white" alt="Git 2.40+">
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue" alt="License">
   <img src="https://img.shields.io/badge/Language-한국어-brightgreen" alt="Korean">
-  <img src="https://img.shields.io/badge/Sections-24%2F56-orange" alt="Progress">
+  <img src="https://img.shields.io/badge/Sections-32%2F56-orange" alt="Progress">
 </p>
 
 ---
@@ -30,12 +30,12 @@
 ```
 Part 1  ██████████████████████████████████████████  100%  Ch1-2 완료
 Part 2  ██████████████████████████████████████████  100%  Ch3-4 완료
-Part 3  ██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░   33%  Ch5-7
+Part 3  ██████████████████████████████████████████  100%  Ch5-7 완료
 Part 4  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    0%  Ch8-9
 Part 5  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    0%  Ch10-12
 ```
 
-**전체**: 24 / 56 섹션 완료 (43%)
+**전체**: 32 / 56 섹션 완료 (57%)
 
 ---
 
@@ -112,26 +112,26 @@ Part 5  ░░░░░░░░░░░░░░░░░░░░░░░░
 </details>
 
 <details>
-<summary><strong>Ch6. Pull Request와 코드 리뷰</strong> — 0/4</summary>
+<summary><strong>Ch6. Pull Request와 코드 리뷰</strong> — 4/4 ✅</summary>
 
 | # | 섹션 | 설명 |
 |:-:|------|------|
-| 01 | PR 워크플로우 | 브랜치 → PR → 리뷰 → 머지, PR 작성법 |
-| 02 | 코드 리뷰 | 리뷰 요청, 라인 코멘트, Approve/Request Changes |
-| 03 | PR 관리 | 충돌 해결, Draft PR, Merge 전략(Squash/Rebase/Merge Commit) |
-| 04 | 오픈소스 기여 | fork → upstream sync → 첫 PR, 기여 가이드라인 |
+| 01 | [PR 워크플로우](06-pull-request/01-pr-workflow.md) | 브랜치 → PR → 리뷰 → 머지, PR 작성법 |
+| 02 | [코드 리뷰](06-pull-request/02-code-review.md) | 리뷰 요청, 라인 코멘트, Approve/Request Changes |
+| 03 | [PR 관리](06-pull-request/03-pr-management.md) | 충돌 해결, Draft PR, Merge 전략(Squash/Rebase/Merge Commit) |
+| 04 | [오픈소스 기여](06-pull-request/04-open-source.md) | fork → upstream sync → 첫 PR, 기여 가이드라인 |
 
 </details>
 
 <details>
-<summary><strong>Ch7. Issues와 프로젝트 관리</strong> — 0/4</summary>
+<summary><strong>Ch7. Issues와 프로젝트 관리</strong> — 4/4 ✅</summary>
 
 | # | 섹션 | 설명 |
 |:-:|------|------|
-| 01 | Issues 활용 | 이슈 작성, 라벨, 마일스톤, Assignee, 이슈 참조 |
-| 02 | Projects 보드 | 칸반 보드, 자동화, 타임라인 뷰, 커스텀 필드 |
-| 03 | Discussions와 Wiki | 커뮤니티 소통, Q&A, 문서 관리 |
-| 04 | 템플릿과 자동화 | Issue/PR 템플릿, CONTRIBUTING.md, CODEOWNERS |
+| 01 | [Issues 활용](07-issues-projects/01-issues.md) | 이슈 작성, 라벨, 마일스톤, Assignee, 이슈 참조 |
+| 02 | [Projects 보드](07-issues-projects/02-projects.md) | 칸반 보드, 자동화, 타임라인 뷰, 커스텀 필드 |
+| 03 | [Discussions와 Wiki](07-issues-projects/03-discussions-wiki.md) | 커뮤니티 소통, Q&A, 문서 관리 |
+| 04 | [템플릿과 자동화](07-issues-projects/04-templates.md) | Issue/PR 템플릿, CONTRIBUTING.md, CODEOWNERS |
 
 </details>
 
