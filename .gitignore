@@ -1,0 +1,19 @@
+# Claude (개발 도구 — 앱 콘텐츠와 무관)
+.claude/
+.claudesession
+*.claudesession
+claude_output/
+CLAUDE.md
+contents_status.md
+resources/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
