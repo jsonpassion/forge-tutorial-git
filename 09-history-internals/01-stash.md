@@ -6,7 +6,7 @@
 
 코드를 한창 수정하고 있는데 갑자기 "긴급 버그 좀 고쳐주세요!"라는 요청이 들어온 적 있으신가요? 아직 커밋할 만큼 완성되지 않은 코드를 어떻게 해야 할까요? 이런 상황에서 Git **stash**가 구원자가 됩니다. 이번 섹션에서는 작업을 임시로 보관하고, 필요할 때 다시 꺼내 쓰는 방법을 배웁니다.
 
-**선수 지식**: [커밋의 기본](../01-git-start/04-commit-basics.md), [브랜치 생성과 전환](../03-branch/02-create-switch.md)
+**선수 지식**: [커밋의 기본](../01-git-start/04-commit-basics.md), [브랜치 생성과 전환](../03-branch/02-create-switch.md), [워크플로우 전략](../08-advanced-branch/04-workflow-strategies.md)
 **학습 목표**:
 - stash의 개념과 동작 원리를 이해한다
 - stash push, pop, apply, drop 명령어를 구분하여 사용한다
