@@ -23,6 +23,22 @@
 
 > 💡 **비유**: Interactive Rebase는 **영화 편집**과 같습니다. 촬영한 장면(커밋)들을 편집실에서 순서를 바꾸고, 여러 장면을 하나로 합치고, 불필요한 장면을 삭제하고, 자막(커밋 메시지)을 수정하는 거예요. 편집이 끝나면 깔끔한 최종본이 완성됩니다.
 
+> 📊 **그림 1**: Interactive Rebase의 전체 흐름
+
+```mermaid
+flowchart TD
+    A["git rebase -i HEAD~N"] --> B["에디터에서 todo list 열림"]
+    B --> C["명령어 수정<br/>pick, reword, squash 등"]
+    C --> D["저장 후 닫기"]
+    D --> E{"충돌 발생?"}
+    E -->|No| F["Rebase 완료<br/>깔끔한 히스토리"]
+    E -->|Yes| G["충돌 해결"]
+    G --> H["git rebase --continue"]
+    H --> E
+    D --> I["취소하고 싶다면<br/>git rebase --abort"]
+```
+
+
 ```bash
 # 최근 N개의 커밋을 편집
 git rebase -i HEAD~3
@@ -92,6 +108,24 @@ fixup m0n1o2p Fix typo
 
 결과: 4개 커밋이 1개로 합쳐집니다.
 
+> 📊 **그림 2**: squash와 fixup으로 커밋 합치기 (Before → After)
+
+```mermaid
+flowchart LR
+    subgraph Before["정리 전"]
+        direction TB
+        B1["Add login feature"] --> B2["Fix login validation"]
+        B2 --> B3["Add error message"]
+        B3 --> B4["Fix typo"]
+    end
+    subgraph After["정리 후"]
+        direction TB
+        A1["Add login feature<br/>(4개 합쳐진 결과)"]
+    end
+    Before -->|"squash + fixup"| After
+```
+
+
 > 🔥 **실무 팁**: "이 커밋의 메시지는 의미 없고, 앞 커밋의 보완일 뿐" → `fixup` 사용. "두 커밋의 내용을 합치면서 새 메시지를 작성하고 싶다" → `squash` 사용.
 
 ### 개념 5: edit — 커밋 수정 & 분할
@@ -111,6 +145,24 @@ pick e4f5g6h Add views
 ```
 
 저장하면 Git이 해당 커밋에서 멈춥니다:
+
+> 📊 **그림 3**: edit 명령으로 커밋 분할(split) 과정
+
+```mermaid
+flowchart TD
+    A["edit으로 커밋에서 정지"] --> B["git reset HEAD^<br/>커밋 해제, 변경사항 유지"]
+    B --> C["git add model.js"]
+    C --> D["git commit -m 'Add user model'"]
+    D --> E["git add controller.js"]
+    E --> F["git commit -m 'Add user controller'"]
+    F --> G["git rebase --continue"]
+    subgraph 결과["1개 커밋이 2개로 분할"]
+        R1["Add user model"]
+        R2["Add user controller"]
+    end
+    G --> 결과
+```
+
 
 ```bash
 # 1. 현재 커밋을 되돌리되 변경 사항은 유지
@@ -168,6 +220,23 @@ git rebase -i --autosquash main
 ```
 
 에디터가 열리면 fixup 커밋이 자동으로 올바른 위치에 배치되어 있습니다:
+
+> 📊 **그림 4**: Autosquash 워크플로우
+
+```mermaid
+sequenceDiagram
+    participant D as 개발자
+    participant G as Git
+    D->>G: git commit -m "Add login feature"
+    Note over G: 커밋 a1b2c3d 생성
+    D->>G: (작업 중 수정 필요 발견)
+    D->>G: git commit --fixup=a1b2c3d
+    Note over G: "fixup! Add login feature" 생성
+    D->>G: git rebase -i --autosquash main
+    Note over G: fixup 커밋을 자동으로<br/>원래 커밋 바로 아래 배치
+    G->>D: 정리된 히스토리 완성
+```
+
 
 ```bash
 pick a1b2c3d Add login feature

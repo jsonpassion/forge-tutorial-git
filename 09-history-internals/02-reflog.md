@@ -25,6 +25,18 @@ Git을 사용하다 보면 실수는 반드시 일어납니다. `git reset --har
 
 **reflog** = **ref**erence **log**. Git의 참조(HEAD, 브랜치 등)가 변경될 때마다 기록을 남기는 **로컬 이력 로그**입니다.
 
+> 📊 **그림 1**: Reflog의 동작 원리 — HEAD가 이동할 때마다 기록이 쌓입니다
+
+```mermaid
+flowchart LR
+    A["HEAD@{4}<br/>commit: Add file"] --> B["HEAD@{3}<br/>checkout: feature"]
+    B --> C["HEAD@{2}<br/>commit: WIP"]
+    C --> D["HEAD@{1}<br/>checkout: main"]
+    D --> E["HEAD@{0}<br/>commit: Add feature"]
+    style E fill:#2d6a4f,color:#fff
+```
+
+
 ```bash
 # HEAD의 이동 이력 보기
 git reflog
@@ -57,11 +69,50 @@ t6u7v8w HEAD@{6}: commit: Add important file
 | 공유 여부 | `push`로 공유됨 | **로컬 전용** (다른 사람에게 없음) |
 | 유효 기간 | 영구 | 기본 90일 (만료됨) |
 
+> 📊 **그림 2**: git log vs git reflog — 같은 저장소를 서로 다른 관점으로 봅니다
+
+```mermaid
+flowchart TD
+    subgraph LOG["git log — 커밋 히스토리"]
+        direction TB
+        L1["commit C"] --> L2["commit B"]
+        L2 --> L3["commit A"]
+    end
+    subgraph REFLOG["git reflog — HEAD 이동 이력"]
+        direction TB
+        R1["HEAD@{0}: reset to A"] --> R2["HEAD@{1}: commit C"]
+        R2 --> R3["HEAD@{2}: commit B"]
+        R3 --> R4["HEAD@{3}: commit A"]
+    end
+    NOTE["reset 후 log에서 B,C 사라짐<br/>reflog에는 여전히 존재!"]
+```
+
+
 > **핵심**: `git log`에서 사라진 커밋도 `git reflog`에서는 찾을 수 있습니다!
 
 ### 개념 3: 잃어버린 커밋 복구하기
 
 **시나리오**: `git reset --hard HEAD~3`으로 최근 3개 커밋을 실수로 날렸습니다.
+
+> 📊 **그림 3**: 잃어버린 커밋 복구 흐름 — reflog로 되감기
+
+```mermaid
+stateDiagram-v2
+    state "커밋 A" as A
+    state "커밋 B" as B
+    state "커밋 C (원래 HEAD)" as C
+    state "커밋 A (reset 후 HEAD)" as A2
+    state "커밋 C (복구된 HEAD)" as C2
+
+    A --> B: commit
+    B --> C: commit
+    C --> A2: reset --hard HEAD~2
+    A2 --> C2: reset --hard HEAD@{1}
+
+    note right of A2: log에서 B,C 사라짐
+    note right of C2: reflog로 복구 완료!
+```
+
 
 ```bash
 # 1. reflog에서 reset 직전 상태 찾기
@@ -238,6 +289,22 @@ a1a1a1a 버전 1
 ## 더 깊이 알아보기
 
 ### Reflog의 만료 시간
+
+> 📊 **그림 4**: Reflog 항목의 생명주기 — gc에 의해 만료됩니다
+
+```mermaid
+flowchart TD
+    A["HEAD 이동 발생"] --> B["reflog에 기록 저장"]
+    B --> C{"도달 가능한 커밋?"}
+    C -->|"Yes"| D["90일간 보관<br/>gc.reflogExpire"]
+    C -->|"No"| E["30일간 보관<br/>gc.reflogExpireUnreachable"]
+    D --> F["git gc 실행"]
+    E --> F
+    F --> G{"만료 기간 초과?"}
+    G -->|"Yes"| H["항목 삭제"]
+    G -->|"No"| I["항목 유지"]
+```
+
 
 reflog 기록은 영원하지 않습니다. Git은 `git gc` (garbage collection) 실행 시 오래된 reflog 항목을 정리합니다.
 

@@ -59,6 +59,20 @@ gh browse --repo user/repo -- /discussions
 
 ### 개념 2: 이슈 vs Discussions — 언제 무엇을 쓸까?
 
+> 📊 **그림 1**: 이슈와 Discussions 간 전환 흐름
+
+```mermaid
+flowchart LR
+    A["아이디어 발생"] --> B{"구체적 작업인가?"}
+    B -- "예" --> C["Issue 생성"]
+    B -- "아니오" --> D["Discussion 생성"]
+    D -- "구체화됨" --> E["Issue로 전환"]
+    C -- "사실 토론" --> F["Discussion으로 전환"]
+    E --> G["Projects에 추가"]
+    C --> G
+```
+
+
 이 둘의 구분이 헷갈릴 수 있어요. 핵심 기준은 **"구체적인 작업이 있는가?"**입니다:
 
 | 기준 | Issues | Discussions |
@@ -73,6 +87,19 @@ gh browse --repo user/repo -- /discussions
 > 💡 **알고 계셨나요?**: Discussions에서 나온 아이디어가 구체화되면 **이슈로 전환**할 수 있습니다. 반대로 이슈로 올라온 질문이 사실 토론인 경우에도 **Discussion으로 전환** 가능해요. 유연하게 왔다 갔다 할 수 있습니다.
 
 ### 개념 3: GitHub Wiki — 프로젝트 문서화
+
+> 📊 **그림 2**: Wiki의 Git 기반 편집 흐름
+
+```mermaid
+flowchart TD
+    A["repo.wiki.git"] --> B["git clone"]
+    B --> C["로컬 편집<br/>Home.md, _Sidebar.md"]
+    C --> D["git commit"]
+    D --> E["git push"]
+    E --> F["GitHub Wiki 페이지 반영"]
+    G["웹 UI 편집"] --> F
+```
+
 
 > 💡 **비유**: Wiki는 프로젝트의 **백과사전**입니다. README가 책의 "표지와 서문"이라면, Wiki는 "전체 목차와 챕터"에 해당해요. 설치 가이드, 사용법, API 문서, FAQ 등을 체계적으로 정리할 수 있습니다.
 
@@ -133,6 +160,21 @@ git push
 > ⚠️ **흔한 오해**: "Wiki는 웹에서만 편집할 수 있다" — 아닙니다! Wiki는 별도의 Git 저장소이므로, `git clone`으로 로컬에 가져와서 에디터에서 편집하고 push할 수 있어요. 여러 페이지를 한꺼번에 수정할 때 훨씬 편합니다.
 
 ### 개념 4: Wiki vs README vs Docs 사이트
+
+> 📊 **그림 3**: 프로젝트 규모별 문서화 도구 선택
+
+```mermaid
+flowchart TD
+    A["프로젝트 문서화"] --> B{"문서 규모?"}
+    B -- "1~2 페이지" --> C["README.md"]
+    B -- "5~30 페이지" --> D["GitHub Wiki"]
+    B -- "30+ 페이지<br/>API 문서, 다국어" --> E["Docs 사이트<br/>Pages, Docusaurus, MkDocs"]
+    C --> F["프로젝트 성장"]
+    F --> D
+    D --> G["더 성장"]
+    G --> E
+```
+
 
 문서를 어디에 둘지 고민된다면:
 

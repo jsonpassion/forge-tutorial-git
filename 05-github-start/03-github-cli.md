@@ -15,6 +15,28 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: Git과 GitHub CLI의 역할 분담
+
+```mermaid
+graph TD
+    subgraph GH["GitHub CLI (gh)"]
+        A["저장소 생성/삭제"]
+        B["이슈 관리"]
+        C["PR 생성/머지"]
+        D["Actions 모니터링"]
+        E["인증/계정 관리"]
+    end
+    subgraph GIT["Git"]
+        F["add / commit"]
+        G["push / pull"]
+        H["branch / merge"]
+        I["log / diff"]
+    end
+    GH --- J["보완 관계"]
+    GIT --- J
+```
+
+
 개발 중에 "이슈 하나 만들어야지" 하면서 브라우저를 열고, GitHub에 로그인하고, 저장소를 찾고... 이 과정이 번거롭다고 느낀 적 있나요? GitHub CLI를 쓰면 **터미널에서 3초 만에** 이슈를 만들고, PR을 생성하고, 코드 리뷰를 확인할 수 있습니다. 특히 키보드에서 손을 떼지 않고 작업 흐름을 유지할 수 있어서, 생산성이 크게 올라갑니다.
 
 ## 핵심 개념
@@ -55,6 +77,25 @@ https://github.com/cli/cli/releases/tag/v2.65.0
 #### 인증
 
 설치 후 가장 먼저 할 일은 **GitHub 계정과 연결(인증)**하는 것입니다:
+
+> 📊 **그림 2**: gh auth login 인증 흐름
+
+```mermaid
+sequenceDiagram
+    participant U as 사용자 터미널
+    participant GH as GitHub CLI
+    participant B as 웹 브라우저
+    participant S as GitHub 서버
+    U->>GH: gh auth login
+    GH->>U: 프로토콜 선택 (SSH/HTTPS)
+    GH->>U: 인증 방식 선택
+    GH->>U: 일회용 코드 표시
+    GH->>B: 브라우저 열기
+    B->>S: 코드 입력 + 권한 승인
+    S-->>GH: 토큰 발급
+    GH-->>U: 인증 완료 + SSH 키 업로드
+```
+
 
 ```bash
 # 대화형 인증 시작
@@ -193,6 +234,20 @@ gh issue view 12 --web
 ### 개념 4: gh pr — Pull Request 관리
 
 > 💡 **비유**: PR(Pull Request)은 **동료에게 보내는 검토 요청서**입니다. "제가 이렇게 고쳤는데, 확인해주시겠어요?" — 이 과정을 터미널에서 바로 할 수 있습니다.
+
+> 📊 **그림 3**: GitHub CLI를 활용한 PR 워크플로우
+
+```mermaid
+flowchart LR
+    A["브랜치 생성<br/>git switch -c"] --> B["코드 수정<br/>git commit"]
+    B --> C["푸시<br/>git push"]
+    C --> D["PR 생성<br/>gh pr create"]
+    D --> E["리뷰 요청<br/>--reviewer"]
+    E --> F{"CI 통과?<br/>gh pr checks"}
+    F -->|통과| G["머지<br/>gh pr merge"]
+    F -->|실패| B
+```
+
 
 ```bash
 # PR 만들기 (대화형)

@@ -44,6 +44,24 @@ GitHub Pages에는 두 가지 종류가 있습니다:
 
 ### 개념 3: 배포 소스 설정
 
+> 📊 **그림 1**: GitHub Pages 배포 방식 비교
+
+```mermaid
+flowchart TD
+    A["GitHub 저장소"] --> B{"배포 방식 선택"}
+    B --> C["브랜치 배포<br/>간단한 설정"]
+    B --> D["Actions 배포<br/>유연한 빌드"]
+    C --> E["main 브랜치 / root"]
+    C --> F["main 브랜치 / docs"]
+    D --> G["빌드 Job<br/>Hugo, Astro, Next.js 등"]
+    G --> H["upload-pages-artifact"]
+    H --> I["deploy-pages"]
+    E --> J["GitHub Pages 사이트"]
+    F --> J
+    I --> J
+```
+
+
 GitHub Pages의 배포 소스를 설정하는 방법은 두 가지입니다:
 
 **방법 1: 브랜치에서 배포** (간단)
@@ -74,6 +92,19 @@ git push
 > 💡 **비유**: Jekyll은 **자동 제본기**입니다. 마크다운(원고)을 넣으면 예쁜 웹사이트(책)로 만들어줍니다. 디자인(테마)도 골라서 입힐 수 있죠.
 
 Jekyll은 Markdown 파일을 HTML 웹사이트로 변환하는 도구입니다. GitHub Pages에 **내장**되어 있어서 별도 설치 없이 사용할 수 있습니다.
+
+> 📊 **그림 2**: Jekyll 빌드 파이프라인
+
+```mermaid
+flowchart LR
+    A["Markdown 파일<br/>(.md)"] --> B["Jekyll 엔진"]
+    C["_config.yml<br/>사이트 설정"] --> B
+    D["테마<br/>(minima 등)"] --> B
+    E["_posts/<br/>블로그 글"] --> B
+    B --> F["HTML/CSS/JS<br/>정적 파일"]
+    F --> G["GitHub Pages<br/>웹사이트"]
+```
+
 
 ```bash
 # Jekyll 사이트 기본 구조
@@ -131,6 +162,23 @@ git push
 > ⚠️ **흔한 오해**: "Jekyll 블로그 글 파일명은 아무렇게나 해도 된다" — 반드시 `YYYY-MM-DD-title.md` 형식이어야 합니다. 이 규칙을 어기면 Jekyll이 포스트로 인식하지 못해요.
 
 ### 개념 5: GitHub Actions로 정적 사이트 배포
+
+> 📊 **그림 3**: Actions 기반 Pages 배포 흐름
+
+```mermaid
+sequenceDiagram
+    participant D as 개발자
+    participant G as GitHub
+    participant A as Actions Runner
+    participant P as GitHub Pages
+    D->>G: git push (main)
+    G->>A: 워크플로우 트리거
+    A->>A: checkout + 빌드<br/>(Hugo/Astro/Next.js)
+    A->>G: upload-pages-artifact
+    A->>P: deploy-pages
+    P-->>D: 사이트 배포 완료<br/>(username.github.io)
+```
+
 
 Jekyll 외의 도구(Hugo, Next.js, Astro 등)를 쓰고 싶다면 Actions를 사용합니다:
 
@@ -221,6 +269,21 @@ jobs:
 ```
 
 ### 개념 6: 커스텀 도메인
+
+> 📊 **그림 4**: 커스텀 도메인 연결 구조
+
+```mermaid
+flowchart LR
+    A["사용자 브라우저<br/>blog.example.com"] --> B["DNS 조회"]
+    B --> C{"레코드 타입"}
+    C --> D["CNAME 레코드<br/>blog → username.github.io"]
+    C --> E["A 레코드<br/>@ → 185.199.108.153"]
+    D --> F["GitHub CDN"]
+    E --> F
+    F --> G["CNAME 파일 확인<br/>저장소 내 CNAME"]
+    G --> H["GitHub Pages<br/>사이트 응답 + HTTPS"]
+```
+
 
 `username.github.io` 대신 자신만의 도메인을 연결할 수 있습니다:
 

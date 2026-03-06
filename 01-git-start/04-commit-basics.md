@@ -14,6 +14,17 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: Git의 기본 워크플로 — add와 commit의 흐름
+
+```mermaid
+flowchart LR
+    A["작업 디렉토리<br/>Working Directory"] -->|"git add"| B["스테이징 영역<br/>Staging Area"]
+    B -->|"git commit"| C["저장소<br/>Repository"]
+    C -->|"git log"| D["커밋 이력 조회"]
+    A -->|"git status"| E["상태 확인"]
+```
+
+
 커밋은 Git에서 **가장 기본이 되는 단위**입니다. 프로젝트의 모든 이력은 커밋의 연속으로 이루어지죠. 잘 만든 커밋은 나중에 버그를 추적하거나, 특정 시점으로 되돌리거나, 팀원에게 변경 의도를 전달할 때 빛을 발합니다. 반대로 엉성한 커밋은 나중에 큰 고통이 됩니다.
 
 ## 핵심 개념
@@ -82,6 +93,21 @@ git commit -am "오타 수정"
 
 #### 커밋에 포함되는 정보
 
+> 📊 **그림 3**: 커밋 객체의 내부 구조
+
+```mermaid
+graph TD
+    C["커밋 객체<br/>SHA: a1b2c3d"] --> M["메시지<br/>'로그인 페이지 추가'"]
+    C --> A["작성자<br/>홍길동"]
+    C --> D["날짜<br/>2026-02-15"]
+    C --> P["부모 커밋<br/>SHA: f7e8d9c"]
+    C --> T["트리 객체<br/>프로젝트 스냅샷"]
+    T --> F1["index.html"]
+    T --> F2["style.css"]
+    T --> F3["app.js"]
+```
+
+
 하나의 커밋에는 다음 정보가 기록됩니다:
 
 | 항목 | 설명 | 예시 |
@@ -94,6 +120,21 @@ git commit -am "오타 수정"
 | 스냅샷 | 프로젝트 전체 상태 | (트리 객체로 저장) |
 
 ### git status — 현재 상태 파악하기
+
+> 📊 **그림 2**: 파일의 상태 전이 — git status가 보여주는 것
+
+```mermaid
+stateDiagram-v2
+    [*] --> Untracked: 새 파일 생성
+    Untracked --> Staged: git add
+    Staged --> Committed: git commit
+    Committed --> Modified: 파일 수정
+    Modified --> Staged: git add
+    Staged --> Modified: 파일 재수정
+    Committed --> Deleted: 파일 삭제
+    Deleted --> Staged: git add / git rm
+```
+
 
 `git status`는 **가장 자주 쓰게 될 명령어**입니다. 현재 어떤 파일이 어떤 상태에 있는지 한눈에 보여줍니다.
 

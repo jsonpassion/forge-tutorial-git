@@ -23,6 +23,19 @@
 
 > 💡 **비유**: GitHub Projects는 **만능 화이트보드**와 같습니다. 포스트잇(이슈)을 칸반 보드에 붙여서 상태를 관리할 수도 있고, 같은 포스트잇을 스프레드시트(테이블)로 정리할 수도 있고, 타임라인에 배치해서 일정을 볼 수도 있어요. 하나의 데이터를 여러 방식으로 볼 수 있다는 게 핵심입니다.
 
+> 📊 **그림 1**: GitHub Projects v2의 구조 — 하나의 데이터, 여러 뷰
+
+```mermaid
+graph TD
+    P["GitHub Project"] --> D["데이터 레이어<br/>이슈, PR, Draft"]
+    D --> B["Board 뷰<br/>칸반 보드"]
+    D --> T["Table 뷰<br/>스프레드시트"]
+    D --> R["Roadmap 뷰<br/>타임라인"]
+    F["커스텀 필드<br/>우선순위, 스프린트 등"] --> D
+    W["자동화 Workflows"] --> D
+```
+
+
 GitHub Projects v2의 핵심 특징:
 
 | 특징 | 설명 |
@@ -52,6 +65,19 @@ gh project item-add 1 --url https://github.com/user/repo/issues/15
 
 가장 인기 있는 뷰입니다. 이슈를 **카드**로 표시하고, 상태별 **컬럼**(Todo → In Progress → Done)에 배치합니다. 카드를 드래그 앤 드롭으로 옮기면 상태가 자동으로 바뀌어요.
 
+> 📊 **그림 2**: Board 뷰의 이슈 상태 흐름
+
+```mermaid
+stateDiagram-v2
+    [*] --> Todo
+    Todo --> InProgress: 작업 시작
+    InProgress --> InReview: PR 생성
+    InReview --> Done: 머지 완료
+    InProgress --> Todo: 보류
+    InReview --> InProgress: 수정 요청
+```
+
+
 **2) Table (테이블)**
 
 스프레드시트 형태로 이슈를 한 줄씩 보여줍니다. 각 열이 필드(상태, 담당자, 우선순위 등)에 해당해요. **정렬, 그룹핑, 필터**가 가능해서 데이터를 빠르게 분석할 때 유용합니다.
@@ -65,6 +91,19 @@ gh project item-add 1 --url https://github.com/user/repo/issues/15
 - "개발팀 Board" — 개발 이슈만 칸반으로
 - "전체 백로그 Table" — 모든 이슈를 우선순위별로 정렬
 - "릴리스 Roadmap" — 마일스톤별 타임라인
+
+> 📊 **그림 3**: 같은 프로젝트, 목적별 다른 뷰 활용
+
+```mermaid
+flowchart LR
+    P["My App v1.0<br/>프로젝트"] --> V1["개발팀 Board"]
+    P --> V2["전체 백로그 Table"]
+    P --> V3["릴리스 Roadmap"]
+    V1 --> F1["필터: label=dev<br/>그룹: Status"]
+    V2 --> F2["정렬: 우선순위<br/>그룹: Assignee"]
+    V3 --> F3["필터: milestone<br/>날짜: 목표일"]
+```
+
 
 ### 개념 3: 커스텀 필드
 
@@ -95,6 +134,22 @@ gh project item-add 1 --url https://github.com/user/repo/issues/15
 | **Item added** | 프로젝트에 추가될 때 필드 값 자동 설정 |
 
 기본으로 처음 두 가지(닫기 → Done, 머지 → Done)가 활성화되어 있습니다.
+
+> 📊 **그림 4**: 내장 자동화 워크플로우 동작 흐름
+
+```mermaid
+sequenceDiagram
+    participant Dev as 개발자
+    participant GH as GitHub
+    participant Proj as Projects 자동화
+    Dev->>GH: 이슈 생성 (label: bug)
+    GH->>Proj: Auto-add 트리거
+    Proj->>Proj: 프로젝트에 자동 추가
+    Dev->>GH: PR 생성 및 머지
+    GH->>Proj: PR merged 트리거
+    Proj->>Proj: Status를 Done으로 변경
+```
+
 
 **Auto-add 설정 예시**:
 - `label:bug`인 이슈가 생성되면 자동으로 프로젝트에 추가

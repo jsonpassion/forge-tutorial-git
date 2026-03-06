@@ -35,6 +35,34 @@ Git 도구를 익혔다면 이제 **"팀에서 어떻게 사용할 것인가?"**
 
 **전형적인 흐름**:
 
+> 📊 **그림 1**: Git Flow 브랜치 흐름 — 5가지 브랜치의 분기와 머지 관계
+
+```mermaid
+gitGraph
+    commit id: "init"
+    branch develop
+    commit id: "dev-1"
+    branch feature/auth
+    commit id: "feat-1"
+    commit id: "feat-2"
+    checkout develop
+    merge feature/auth id: "merge-feat"
+    branch release/v1.0
+    commit id: "bump-ver"
+    checkout main
+    merge release/v1.0 id: "release" tag: "v1.0"
+    checkout develop
+    merge release/v1.0 id: "sync-dev"
+    checkout main
+    branch hotfix/fix
+    commit id: "urgent-fix"
+    checkout main
+    merge hotfix/fix id: "hotfix" tag: "v1.0.1"
+    checkout develop
+    merge hotfix/fix id: "sync-hotfix"
+```
+
+
 **feature**: develop에서 분기 → 작업 → develop에 머지
 **release**: develop에서 분기 → QA → main + develop에 머지 → 태그
 **hotfix**: main에서 분기 → 수정 → main + develop에 머지 → 태그
@@ -76,6 +104,19 @@ GitHub이 만든 이 전략은 **극도로 단순**합니다:
 
 **전체 흐름**:
 
+> 📊 **그림 2**: GitHub Flow — 단순한 6단계 사이클
+
+```mermaid
+flowchart LR
+    A["main에서<br/>브랜치 생성"] --> B["작업 및<br/>커밋"]
+    B --> C["PR 생성"]
+    C --> D["코드 리뷰"]
+    D --> E["main에 머지"]
+    E --> F["배포"]
+    F -.->|"다음 작업"| A
+```
+
+
 1. `main`에서 브랜치 생성
 2. 작업 & 커밋
 3. PR 생성
@@ -113,6 +154,22 @@ gh pr merge --squash --delete-branch
 - 미완성 기능은 **피처 플래그(feature flag)**로 제어
 - **강력한 자동화 테스트**와 CI/CD가 필수
 
+> 📊 **그림 3**: Trunk-Based Development — 짧은 브랜치와 빠른 머지
+
+```mermaid
+flowchart TD
+    M["main (trunk)"] -->|"분기"| B1["fix/button-color<br/>수명: 수 시간"]
+    M -->|"분기"| B2["feat/search<br/>수명: 반나절"]
+    M -->|"분기"| B3["feat/tooltip<br/>수명: 1일"]
+    B1 -->|"빠른 머지"| M
+    B2 -->|"빠른 머지"| M
+    B3 -->|"빠른 머지"| M
+    M --> CD["CI/CD 파이프라인"]
+    CD --> PROD["프로덕션 배포"]
+    FF["피처 플래그"] -.->|"미완성 기능 제어"| PROD
+```
+
+
 ```bash
 # Trunk-Based: 짧은 브랜치
 git switch -c fix/button-color
@@ -129,6 +186,19 @@ gh pr merge --squash --delete-branch
 
 ### 개념 4: 전략 비교
 
+> 📊 **그림 4**: 세 가지 전략의 복잡도와 배포 속도 비교
+
+```mermaid
+quadrantChart
+    title 워크플로우 전략 포지셔닝
+    x-axis 단순한 브랜치 구조 --> 복잡한 브랜치 구조
+    y-axis 느린 배포 --> 빠른 배포
+    Trunk-Based: [0.15, 0.9]
+    GitHub Flow: [0.3, 0.7]
+    Git Flow: [0.85, 0.25]
+```
+
+
 | 기준 | Git Flow | GitHub Flow | Trunk-Based |
 |------|----------|-------------|-------------|
 | **복잡도** | 높음 | 낮음 | 낮음 |
@@ -140,6 +210,24 @@ gh pr merge --squash --delete-branch
 | **적합한 프로젝트** | 모바일 앱, 데스크톱 | 웹 SaaS, 오픈소스 | 고속 개발 팀 |
 
 ### 개념 5: 우리 팀은 어떤 전략을?
+
+> 📊 **그림 5**: 팀 상황별 워크플로우 선택 가이드
+
+```mermaid
+flowchart TD
+    Q1{"여러 버전을<br/>동시 유지보수?"}
+    Q1 -->|"예"| GF["Git Flow"]
+    Q1 -->|"아니오"| Q2{"CI/CD 인프라가<br/>강력한가?"}
+    Q2 -->|"예"| Q3{"팀 규모 100명+<br/>또는 빠른 반복?"}
+    Q2 -->|"아니오"| GHF["GitHub Flow"]
+    Q3 -->|"예"| TBD["Trunk-Based"]
+    Q3 -->|"아니오"| GHF2["GitHub Flow"]
+    style GF fill:#f9a825,color:#000
+    style GHF fill:#42a5f5,color:#000
+    style GHF2 fill:#42a5f5,color:#000
+    style TBD fill:#66bb6a,color:#000
+```
+
 
 | 상황 | 추천 전략 |
 |------|-----------|

@@ -64,6 +64,23 @@ description: >
 
 `on:` 키워드로 워크플로우가 실행되는 **조건**을 정합니다. 이것이 워크플로우의 출발점이에요.
 
+> 📊 **그림 1**: GitHub Actions 트리거 유형 분류
+
+```mermaid
+flowchart TD
+    A["워크플로우 트리거"] --> B["코드 이벤트"]
+    A --> C["스케줄"]
+    A --> D["수동 실행"]
+    A --> E["외부 호출"]
+    B --> B1["push"]
+    B --> B2["pull_request"]
+    B --> B3["release"]
+    C --> C1["schedule<br/>크론 표현식"]
+    D --> D1["workflow_dispatch<br/>UI/CLI 실행"]
+    E --> E1["workflow_call<br/>재사용 워크플로우"]
+```
+
+
 **기본 이벤트 트리거:**
 
 ```yaml
@@ -148,6 +165,24 @@ gh workflow run deploy.yml -f environment=staging -f debug=true
 
 환경 변수는 **3가지 레벨**에서 설정할 수 있습니다:
 
+> 📊 **그림 2**: 환경 변수 스코프 계층 — 상위가 하위를 포함하며, 하위가 상위를 덮어씁니다
+
+```mermaid
+graph TD
+    W["Workflow 레벨 env<br/>모든 Job/Step 공유"] --> J1["Job A env"]
+    W --> J2["Job B env"]
+    J1 --> S1["Step 1 env"]
+    J1 --> S2["Step 2 env"]
+    J2 --> S3["Step 3 env"]
+    style W fill:#4CAF50,color:#fff
+    style J1 fill:#2196F3,color:#fff
+    style J2 fill:#2196F3,color:#fff
+    style S1 fill:#FF9800,color:#fff
+    style S2 fill:#FF9800,color:#fff
+    style S3 fill:#FF9800,color:#fff
+```
+
+
 ```yaml
 # 1. 워크플로우 레벨 — 모든 Job/Step에서 사용 가능
 env:
@@ -216,6 +251,16 @@ steps:
 > ⚠️ **흔한 오해**: "시크릿을 echo하면 값이 보인다" — GitHub Actions는 로그에서 시크릿 값을 자동으로 **`***`로 마스킹**합니다. 하지만 시크릿을 파일에 쓰거나 base64 인코딩하면 마스킹이 우회될 수 있으니 주의하세요!
 
 시크릿 관리 계층:
+
+> 📊 **그림 3**: 시크릿 관리 계층 — 범위가 넓은 순서
+
+```mermaid
+graph LR
+    O["Organization 시크릿<br/>조직 전체/선택 저장소"] --> R["Repository 시크릿<br/>해당 저장소만"]
+    R --> E["Environment 시크릿<br/>staging, production 등"]
+    E --> W["워크플로우에서 사용<br/>secrets.NAME"]
+```
+
 
 | 레벨 | 범위 | 설정 방법 |
 |------|------|-----------|
@@ -295,6 +340,21 @@ jobs:
 1. **lint**와 **test**가 **동시에**(병렬) 실행
 2. 둘 다 성공하면 **deploy** 실행
 3. 하나라도 실패하면 deploy는 **스킵**
+
+> 📊 **그림 4**: Job 의존관계 실행 흐름 — needs로 순서 제어
+
+```mermaid
+flowchart LR
+    L["lint"] --> D["deploy"]
+    T["test"] --> D
+    L -.->|"병렬 실행"| T
+    D -->|"main 브랜치만"| F["배포 완료"]
+    style L fill:#2196F3,color:#fff
+    style T fill:#2196F3,color:#fff
+    style D fill:#4CAF50,color:#fff
+    style F fill:#9C27B0,color:#fff
+```
+
 
 ## 실습: 실전 워크플로우 만들기
 

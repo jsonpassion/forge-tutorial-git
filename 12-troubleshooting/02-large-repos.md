@@ -14,6 +14,21 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: 대규모 저장소 관리 전략 개관
+
+```mermaid
+flowchart TD
+    P["대규모 저장소 문제"] --> A["대용량 파일"]
+    P --> B["긴 히스토리"]
+    P --> C["많은 파일/폴더"]
+    A --> S1["Git LFS<br/>포인터로 대체"]
+    B --> S2["Shallow Clone<br/>최근 커밋만"]
+    B --> S4["Partial Clone<br/>필요시 다운로드"]
+    C --> S3["Sparse-Checkout<br/>필요한 폴더만"]
+    S3 -.->|"최적 조합"| S4
+```
+
+
 Microsoft의 Windows 저장소는 **300GB**에 350만 개의 파일을 포함하고 있습니다. Google의 모노레포는 무려 **80TB 이상**이죠. 이런 규모에서 일반적인 Git 명령어는 사실상 사용 불가능합니다. 하지만 여러분의 프로젝트도 예외는 아닙니다 — 디자인 에셋, 빌드 아티팩트, ML 모델 파일이 쌓이면 어느 순간 `git clone`이 느려지기 시작합니다. 그때가 바로 이 도구들이 필요한 순간입니다.
 
 ## 핵심 개념
@@ -23,6 +38,22 @@ Microsoft의 Windows 저장소는 **300GB**에 350만 개의 파일을 포함하
 > 💡 **비유**: 일반 택배로 대형 가전을 보내면 비용도 높고 느리죠. 대형 화물은 **전용 물류 서비스**로 따로 보내고, 송장(포인터)만 일반 택배에 넣는 것이 Git LFS의 원리입니다.
 
 Git LFS(Large File Storage)는 대용량 파일을 별도 서버에 저장하고, 저장소에는 가벼운 **포인터 파일**만 남깁니다.
+
+> 📊 **그림 2**: Git LFS 동작 흐름
+
+```mermaid
+sequenceDiagram
+    participant W as 작업 디렉토리
+    participant G as Git 저장소
+    participant L as LFS 서버
+    W->>G: git add large.psd
+    Note over G: 포인터 파일만 저장<br/>(약 130 bytes)
+    G->>L: 실제 파일 업로드
+    Note over L: 원본 바이너리 보관
+    G-->>W: git checkout
+    L-->>W: 실제 파일 다운로드<br/>(필요시)
+```
+
 
 ```bash
 # Git LFS 설치
@@ -128,6 +159,25 @@ git sparse-checkout disable
 
 > ⚠️ **흔한 오해**: sparse-checkout은 파일을 **다운로드하지 않는 것이 아닙니다**. `.git` 안에는 전체 데이터가 있고, 작업 디렉토리에 보여줄 파일만 선택하는 것입니다. 진짜 다운로드를 줄이려면 partial clone과 함께 사용하세요.
 
+> 📊 **그림 3**: Sparse-Checkout vs Partial Clone 비교
+
+```mermaid
+flowchart LR
+    subgraph SC["Sparse-Checkout"]
+        direction TB
+        SC1["git 디렉토리<br/>전체 데이터 보유"] --> SC2["작업 디렉토리<br/>선택한 폴더만 표시"]
+    end
+    subgraph PC["Partial Clone"]
+        direction TB
+        PC1["git 디렉토리<br/>메타데이터만 보유"] --> PC2["작업 디렉토리<br/>접근 시 다운로드"]
+    end
+    subgraph BEST["최적 조합"]
+        direction TB
+        B1["메타데이터만 클론"] --> B2["필요한 폴더만 표시"] --> B3["접근한 파일만 다운로드"]
+    end
+```
+
+
 ### 개념 4: Partial Clone — 필요할 때만 다운로드
 
 ```bash
@@ -148,6 +198,25 @@ git sparse-checkout set backend frontend
 | `blob:none` | 모든 파일 내용 제외, 필요시 다운로드 | 대형 모노레포 |
 | `blob:limit=<크기>` | 지정 크기 이상만 제외 | 대용량 파일이 일부 있는 저장소 |
 | `tree:0` | 디렉토리 트리도 제외 | 극단적 대역폭 절약 |
+
+> 📊 **그림 4**: 클론 방식별 다운로드 범위
+
+```mermaid
+graph TD
+    subgraph FULL["일반 clone"]
+        F1["커밋 히스토리"] --- F2["트리 객체"] --- F3["모든 Blob"]
+    end
+    subgraph SHALLOW["shallow clone --depth 1"]
+        S1["최신 커밋 1개"] --- S2["트리 객체"] --- S3["해당 Blob"]
+    end
+    subgraph PARTIAL["partial clone blob:none"]
+        P1["전체 커밋"] --- P2["트리 객체"] --- P3["Blob 없음<br/>필요시 fetch"]
+    end
+    subgraph COMBO["partial + sparse"]
+        C1["전체 커밋"] --- C2["트리 객체"] --- C3["선택 폴더의<br/>Blob만 fetch"]
+    end
+```
+
 
 ## 실습: 직접 해보기
 

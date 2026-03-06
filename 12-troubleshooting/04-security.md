@@ -22,6 +22,26 @@
 
 > 💡 **비유**: 계약서에 서명을 하는 것과 같습니다. `git config user.name`은 누구나 바꿀 수 있지만, GPG/SSH 서명은 **본인만** 할 수 있는 디지털 서명입니다. GitHub에서 "Verified" 배지가 뜨는 커밋이 바로 서명된 커밋이죠.
 
+> 📊 **그림 1**: 커밋 서명과 검증 흐름
+
+```mermaid
+sequenceDiagram
+    participant D as 개발자
+    participant G as Git
+    participant GH as GitHub
+    D->>G: git commit -m 'message'
+    G->>G: 개인 키로 서명 생성<br/>(SSH 또는 GPG)
+    G-->>D: 서명된 커밋 저장
+    D->>GH: git push
+    GH->>GH: 등록된 공개 키로<br/>서명 검증
+    alt 검증 성공
+        GH-->>D: Verified 배지 표시
+    else 검증 실패
+        GH-->>D: Unverified 표시
+    end
+```
+
+
 **SSH 서명 (간편한 방법, Git 2.34+):**
 
 ```bash
@@ -74,6 +94,21 @@ gpg --armor --export ABC123DEF456
 ### 개념 2: GitHub Secret Scanning — 시크릿 유출 방지
 
 > 💡 **비유**: 공항 보안 검색대를 생각해보세요. 짐을 부치기 전에 X선으로 위험물을 감지하듯, GitHub는 코드를 push하기 전에 시크릿을 감지하여 차단합니다.
+
+> 📊 **그림 2**: GitHub Push Protection 동작 흐름
+
+```mermaid
+flowchart TD
+    A["git push"] --> B["GitHub 서버 수신"]
+    B --> C{"시크릿 스캔"}
+    C -->|시크릿 발견| D["push 차단"]
+    C -->|안전| E["push 완료"]
+    D --> F["개발자에게 경고 메시지"]
+    F --> G["시크릿 제거"]
+    G --> H["다시 push"]
+    H --> B
+```
+
 
 2025년부터 GitHub는 모든 공개 저장소에서 **push protection을 기본 활성화**했습니다.
 
@@ -146,6 +181,22 @@ gh api repos/{owner}/{repo}/dependabot/alerts --jq '.[].security_advisory.summar
 
 > 💡 **알고 계셨나요?**: 2025년 기준 846,000개 이상의 저장소가 Dependabot을 사용하며, GitHub Advisory Database에는 28,000건 이상의 검토된 취약점 정보가 등록되어 있습니다. Dependabot은 30개 이상의 패키지 생태계를 지원합니다.
 
+> 📊 **그림 4**: Dependabot 자동 보안 업데이트 워크플로
+
+```mermaid
+flowchart TD
+    A["GitHub Advisory DB<br/>취약점 공개"] --> B["Dependabot이<br/>저장소 의존성 스캔"]
+    B --> C{"취약점 발견?"}
+    C -->|Yes| D["보안 알림 생성"]
+    C -->|No| E["다음 스캔까지 대기"]
+    D --> F["자동 PR 생성<br/>(패치 버전 업데이트)"]
+    F --> G["CI 테스트 실행"]
+    G --> H{"테스트 통과?"}
+    H -->|Yes| I["리뷰 후 머지"]
+    H -->|No| J["수동 확인 필요"]
+```
+
+
 ### 개념 4: .gitattributes로 파일 보안 관리
 
 ```bash
@@ -189,6 +240,21 @@ chmod +x .git/hooks/pre-commit
 ```
 
 > ⚠️ **흔한 오해**: "pre-commit 훅만 있으면 안전하다" — 로컬 훅은 `--no-verify`로 우회할 수 있습니다. 반드시 **서버 측 보호(GitHub push protection)**와 함께 사용하세요. 방어는 한 겹이 아니라 여러 겹이어야 합니다.
+
+> 📊 **그림 3**: 다계층 보안 방어 체계
+
+```mermaid
+flowchart LR
+    A["코드 작성"] --> B["1차 방어<br/>Pre-commit 훅<br/>(gitleaks)"]
+    B --> C["2차 방어<br/>Push Protection<br/>(GitHub 서버)"]
+    C --> D["3차 방어<br/>Secret Scanning<br/>(저장소 모니터링)"]
+    D --> E["4차 방어<br/>Dependabot<br/>(의존성 감시)"]
+    style B fill:#ffd,stroke:#aa0
+    style C fill:#dfd,stroke:#0a0
+    style D fill:#ddf,stroke:#00a
+    style E fill:#fdf,stroke:#a0a
+```
+
 
 ## 실습: 직접 해보기
 

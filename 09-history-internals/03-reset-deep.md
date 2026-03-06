@@ -21,6 +21,18 @@
 
 ### 개념 1: Git의 세 가지 영역 복습
 
+> 📊 **그림 1**: Git의 세 가지 영역과 데이터 흐름
+
+```mermaid
+flowchart LR
+    WD["작업 디렉토리<br/>Working Directory"] -->|"git add"| SA["스테이징 영역<br/>Staging Area"]
+    SA -->|"git commit"| HEAD["HEAD<br/>Repository"]
+    HEAD -->|"git reset --soft"| HEAD
+    HEAD -->|"git reset --mixed"| SA
+    HEAD -->|"git reset --hard"| WD
+```
+
+
 reset을 이해하려면 Git의 **세 가지 영역**을 확실히 알아야 합니다:
 
 > 💡 **비유**: Git의 세 영역을 **요리 과정**에 비유하면:
@@ -31,6 +43,28 @@ reset을 이해하려면 Git의 **세 가지 영역**을 확실히 알아야 합
 `git reset`은 이 세 영역 중 **어디까지 되돌릴지**를 모드로 결정합니다.
 
 ### 개념 2: reset의 세 가지 모드
+
+> 📊 **그림 2**: reset 모드별 영향 범위 — soft는 HEAD만, mixed는 스테이징까지, hard는 전부
+
+```mermaid
+stateDiagram-v2
+    state "HEAD" as h
+    state "스테이징 영역" as s
+    state "작업 디렉토리" as w
+    state "--soft" as soft {
+        [*] --> h: 이동
+    }
+    state "--mixed (기본)" as mixed {
+        [*] --> h: 이동
+        [*] --> s: 초기화
+    }
+    state "--hard (위험!)" as hard {
+        [*] --> h: 이동
+        [*] --> s: 초기화
+        [*] --> w: 초기화
+    }
+```
+
 
 ```bash
 # 현재 상태: 커밋 3개가 있고, HEAD가 C를 가리킴
@@ -122,6 +156,29 @@ git reset --hard origin/main
 
 ### 개념 4: reset vs revert
 
+> 📊 **그림 3**: reset과 revert의 히스토리 변화 비교
+
+```mermaid
+flowchart TD
+    subgraph BEFORE["원래 상태"]
+        direction LR
+        A1["A"] --> B1["B"] --> C1["C (HEAD)"]
+    end
+    subgraph RESET["git reset --hard HEAD~1"]
+        direction LR
+        A2["A"] --> B2["B (HEAD)"]
+        C2["C (삭제됨)"]:::deleted
+    end
+    subgraph REVERT["git revert HEAD"]
+        direction LR
+        A3["A"] --> B3["B"] --> C3["C"] --> D3["D (HEAD)<br/>C를 취소하는 커밋"]
+    end
+    BEFORE --> RESET
+    BEFORE --> REVERT
+    classDef deleted fill:#ff6b6b,stroke:#c92a2a,color:#fff
+```
+
+
 | 항목 | `reset` | `revert` |
 |------|---------|----------|
 | 방식 | 커밋을 **지우고** HEAD를 이동 | 변경을 **되돌리는 새 커밋** 생성 |
@@ -142,6 +199,23 @@ git revert HEAD
 > 🔥 **실무 팁**: **황금 규칙** — 이미 `push`한 커밋은 `reset` 대신 `revert`를 사용하세요. reset 후 force push하면 팀원의 로컬 저장소와 충돌이 생깁니다.
 
 ### 개념 5: reset vs checkout vs restore vs switch
+
+> 📊 **그림 4**: checkout의 역할 분리 — Git 2.23에서 switch와 restore로 분화
+
+```mermaid
+flowchart TD
+    OLD["git checkout<br/>(Git 2.23 이전)"] --> BR["브랜치 전환"]
+    OLD --> FILE["파일 복원"]
+    OLD --> DETACH["Detached HEAD"]
+    BR --> SW["git switch"]
+    FILE --> RS["git restore"]
+    DETACH --> SW2["git switch --detach"]
+    style OLD fill:#ffd43b,stroke:#f59f00,color:#000
+    style SW fill:#69db7c,stroke:#2b8a3e,color:#000
+    style RS fill:#69db7c,stroke:#2b8a3e,color:#000
+    style SW2 fill:#69db7c,stroke:#2b8a3e,color:#000
+```
+
 
 Git의 역사를 보면, `checkout`이 너무 많은 일을 했기 때문에 Git 2.23(2019년)부터 **역할이 분리**되었습니다:
 

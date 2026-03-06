@@ -22,6 +22,22 @@
 
 > 💡 **비유**: Conventional Commits는 **택배 표준 송장**과 같습니다. 모든 택배 회사가 같은 형식의 송장을 사용하면, 어떤 회사든 자동 분류기로 택배를 처리할 수 있죠. 커밋 메시지도 형식이 통일되면, 어떤 도구든 자동으로 분석하고 처리할 수 있습니다.
 
+> 📊 **그림 1**: Conventional Commits 메시지 구조
+
+```mermaid
+graph TD
+    MSG["커밋 메시지"] --> TYPE["타입<br/>feat, fix, docs..."]
+    MSG --> SCOPE["범위 (선택)<br/>auth, cart, ui..."]
+    MSG --> DESC["설명<br/>간결한 변경 요약"]
+    MSG --> BODY["본문 (선택)<br/>상세 설명"]
+    MSG --> FOOTER["꼬리말 (선택)<br/>BREAKING CHANGE, closes #42"]
+    TYPE --> MAJOR["BREAKING CHANGE<br/>MAJOR 버전 업"]
+    TYPE --> MINOR["feat<br/>MINOR 버전 업"]
+    TYPE --> PATCH["fix, perf<br/>PATCH 버전 업"]
+    TYPE --> NONE["docs, style, ci...<br/>버전 변경 없음"]
+```
+
+
 [이전 섹션](../01-git-start/05-diff-messages.md)에서 기본 형식을 배웠습니다. 여기서는 **전체 사양**을 정리합니다:
 
 ```console
@@ -98,6 +114,17 @@ echo "npx --no -- commitlint --edit \$1" > .husky/commit-msg
 ```
 
 이제 규칙에 맞지 않는 커밋은 자동으로 **차단**됩니다:
+
+> 📊 **그림 2**: commitlint + Husky 검증 흐름
+
+```mermaid
+flowchart LR
+    A["git commit"] --> B["Husky<br/>commit-msg 훅 실행"]
+    B --> C["commitlint<br/>메시지 검증"]
+    C -->|규칙 준수| D["커밋 성공"]
+    C -->|규칙 위반| E["커밋 차단<br/>에러 메시지 출력"]
+```
+
 
 ```bash
 # ❌ 규칙 위반 — 차단됨
@@ -195,6 +222,21 @@ closes #42
 
 커밋 메시지가 규칙적이면, **Changelog를 자동으로 생성**할 수 있습니다. 수동으로 "이번 릴리스에 뭐가 바뀌었지?" 하고 커밋을 하나씩 뒤지는 건 과거의 일입니다.
 
+> 📊 **그림 3**: release-please 자동 릴리스 파이프라인
+
+```mermaid
+flowchart TD
+    A["feat/fix 커밋을<br/>main에 푸시"] --> B["release-please Action 실행"]
+    B --> C["커밋 메시지 분석<br/>타입별 분류"]
+    C --> D["Release PR 자동 생성"]
+    D --> E["CHANGELOG.md 업데이트<br/>버전 번호 결정"]
+    E --> F{"PR 머지?"}
+    F -->|머지| G["GitHub Release 생성"]
+    G --> H["Git 태그 생성<br/>v2.3.0"]
+    F -->|대기| I["추가 커밋 반영<br/>PR 자동 업데이트"]
+```
+
+
 **release-please** (Google의 도구, GitHub Actions 연동):
 
 ```yaml
@@ -270,6 +312,25 @@ npm install --save-dev semantic-release
 ### 개념 5: GitHub Actions로 커밋 메시지 검증
 
 로컬 commitlint는 우회할 수 있으므로(Husky를 설치 안 하거나, `--no-verify` 플래그 사용), **서버 측에서도 검증**하는 것이 안전합니다:
+
+> 📊 **그림 4**: 로컬 + 서버 이중 검증 구조
+
+```mermaid
+flowchart TD
+    subgraph LOCAL["로컬 검증"]
+        A["개발자 커밋"] --> B["Husky + commitlint"]
+        B -->|통과| C["커밋 완료"]
+        B -->|차단| D["메시지 수정 요청"]
+    end
+    subgraph SERVER["서버 검증"]
+        C --> E["git push"]
+        E --> F["PR 생성"]
+        F --> G["GitHub Actions<br/>commitlint Action"]
+        G -->|통과| H["리뷰 진행"]
+        G -->|실패| I["PR 체크 실패<br/>수정 요청"]
+    end
+```
+
 
 ```yaml
 # .github/workflows/commitlint.yml

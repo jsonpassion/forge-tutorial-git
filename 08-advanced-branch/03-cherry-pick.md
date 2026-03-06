@@ -25,6 +25,21 @@ merge는 브랜치 전체를 합치고, rebase는 브랜치를 옮깁니다. 하
 
 cherry-pick은 특정 커밋의 **변경 사항(diff)을 복사해서** 현재 브랜치에 **새 커밋으로 적용**합니다. 원래 커밋은 그대로 남아 있고, 새 커밋은 **다른 해시**를 갖습니다.
 
+> 📊 **그림 1**: Cherry-pick의 동작 원리 — 커밋 복사와 새 해시 생성
+
+```mermaid
+graph LR
+    subgraph feature ["feature 브랜치"]
+        F1["C1"] --> F2["C2"] --> F3["C3<br/>a1b2c3d"]
+    end
+    subgraph main ["main 브랜치"]
+        M1["M1"] --> M2["M2"] --> M3["M3'<br/>b2c3d4e<br/>(C3의 복사본)"]
+    end
+    F3 -.->|"cherry-pick"| M3
+    style M3 fill:#f9f,stroke:#333
+```
+
+
 ```bash
 # 기본 cherry-pick
 git cherry-pick a1b2c3d
@@ -101,6 +116,22 @@ git commit -m "Backport: security fixes for v2.3"
 
 ### 개념 5: 충돌 해결
 
+> 📊 **그림 2**: Cherry-pick 충돌 해결 흐름
+
+```mermaid
+stateDiagram-v2
+    [*] --> 실행: git cherry-pick
+    실행 --> 성공: 충돌 없음
+    실행 --> 충돌발생: 충돌 감지
+    충돌발생 --> 파일수정: 충돌 파일 편집
+    파일수정 --> 스테이징: git add
+    스테이징 --> 성공: git cherry-pick --continue
+    충돌발생 --> 취소: git cherry-pick --abort
+    취소 --> [*]
+    성공 --> [*]
+```
+
+
 cherry-pick도 merge처럼 충돌이 발생할 수 있습니다:
 
 ```bash
@@ -131,6 +162,20 @@ git cherry-pick --abort
 ```
 
 ### 개념 6: 활용 시나리오
+
+> 📊 **그림 3**: 핫픽스 백포팅 — 하나의 커밋을 여러 릴리스 브랜치에 적용
+
+```mermaid
+flowchart TD
+    M["main<br/>버그 수정 커밋<br/>a1b2c3d"] -->|"cherry-pick -x"| R1["release/v2.3<br/>새 해시로 적용"]
+    M -->|"cherry-pick -x"| R2["release/v2.2<br/>새 해시로 적용"]
+    M -->|"cherry-pick -x"| R3["release/v2.1<br/>새 해시로 적용"]
+    style M fill:#ff9,stroke:#333
+    style R1 fill:#9f9,stroke:#333
+    style R2 fill:#9f9,stroke:#333
+    style R3 fill:#9f9,stroke:#333
+```
+
 
 **1) 핫픽스 백포팅**
 
@@ -188,6 +233,28 @@ cherry-pick은 강력하지만 **남용하면 문제**가 생깁니다:
 | **merge** | 브랜치의 변경 사항 대부분이 필요할 때 |
 | **rebase** | 브랜치 전체를 새 베이스로 옮길 때 |
 | **cherry-pick** | 특정 커밋만 선별적으로 필요할 때 |
+
+> 📊 **그림 4**: merge vs rebase vs cherry-pick 비교
+
+```mermaid
+flowchart LR
+    subgraph merge ["merge"]
+        direction TB
+        A1["브랜치 전체"] --> A2["합치기"]
+    end
+    subgraph rebase ["rebase"]
+        direction TB
+        B1["브랜치 전체"] --> B2["베이스 이동"]
+    end
+    subgraph cherrypick ["cherry-pick"]
+        direction TB
+        C1["특정 커밋만"] --> C2["복사 적용"]
+    end
+    style merge fill:#e6f3ff,stroke:#333
+    style rebase fill:#fff3e6,stroke:#333
+    style cherrypick fill:#f3e6ff,stroke:#333
+```
+
 
 ## 실습: 핫픽스 Cherry-pick
 

@@ -14,6 +14,18 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: Git 파일 상태와 되돌리기 명령어 전체 구조
+
+```mermaid
+flowchart LR
+    WD["작업 디렉토리<br/>Working Directory"] -->|"git add"| SA["스테이징 영역<br/>Staging Area"]
+    SA -->|"git commit"| REPO["저장소<br/>Repository"]
+    SA -->|"git restore --staged"| WD
+    REPO -->|"git restore"| WD
+    REPO -->|"git restore --source"| WD
+```
+
+
 실수는 누구나 합니다. 파일을 잘못 수정했거나, 실험적인 코드를 작성했다가 마음에 안 들거나, `git add`를 너무 일찍 해버렸거나. 이런 상황에서 **당황하지 않고 깔끔하게 되돌리는 능력**이 바로 Git을 제대로 쓰는 개발자와 그렇지 않은 개발자의 차이입니다.
 
 ## 핵심 개념
@@ -49,6 +61,20 @@ git restore --staged .
 ```
 
 이 두 가지를 정리하면:
+
+> 📊 **그림 2**: git restore 옵션별 동작 범위
+
+```mermaid
+stateDiagram-v2
+    state "저장소(HEAD)" as REPO
+    state "스테이징 영역" as STAGE
+    state "작업 디렉토리" as WORK
+
+    STAGE --> WORK : git restore --staged<br/>스테이징만 취소
+    REPO --> WORK : git restore<br/>수정 내용 삭제
+    REPO --> WORK : git restore --staged --worktree<br/>둘 다 취소
+```
+
 
 | 명령어 | 효과 | 변경 내용 |
 |--------|------|----------|
@@ -94,6 +120,20 @@ git reset HEAD README.md
 
 `git checkout`은 **브랜치를 전환**할 때도, **파일을 되돌릴** 때도 사용하는 만능 명령어였는데, 이게 혼란의 원인이었죠. 그래서 Git 2.23(2019년)에서 역할이 분리되었습니다:
 
+> 📊 **그림 3**: git checkout의 역할 분리 (Git 2.23)
+
+```mermaid
+flowchart TD
+    OLD["git checkout<br/>만능 명령어"] --> B["브랜치 전환"]
+    OLD --> F["파일 되돌리기"]
+    B --> NEW1["git switch"]
+    F --> NEW2["git restore"]
+    style OLD fill:#f96,color:#fff
+    style NEW1 fill:#6b9,color:#fff
+    style NEW2 fill:#6b9,color:#fff
+```
+
+
 | 과거 (checkout 만능) | 현재 (역할 분리) |
 |---------------------|-----------------|
 | `git checkout <브랜치>` | `git switch <브랜치>` |
@@ -133,6 +173,19 @@ git commit -m "불필요한 파일 삭제"
 
 두 방법의 결과는 동일하지만, `git rm`이 한 단계로 깔끔합니다.
 
+> 📊 **그림 4**: git rm vs rm + git add 비교
+
+```mermaid
+flowchart LR
+    subgraph 방법1["git rm (1단계)"]
+        A1["git rm file"] --> C1["커밋 준비 완료"]
+    end
+    subgraph 방법2["rm + git add (2단계)"]
+        A2["rm file"] --> B2["git add file"] --> C2["커밋 준비 완료"]
+    end
+```
+
+
 ### git mv — 파일 이동 및 이름 변경
 
 > 💡 **비유**: `git mv`는 **이사 신고서**와 같습니다. 파일의 주소(경로)가 바뀌면 Git에게 "이 파일이 여기로 이사했어요"라고 정식으로 알려주는 거죠.
@@ -149,6 +202,17 @@ git mv utils.js lib/helpers.js
 ```
 
 사실 `git mv`는 내부적으로 세 가지 명령어의 조합입니다:
+
+> 📊 **그림 5**: git mv의 내부 동작
+
+```mermaid
+flowchart LR
+    MV["git mv old.js new.js"] --> S1["mv old.js new.js<br/>파일 이동"]
+    S1 --> S2["git rm old.js<br/>이전 경로 제거"]
+    S2 --> S3["git add new.js<br/>새 경로 등록"]
+    style MV fill:#36b,color:#fff
+```
+
 
 ```bash
 # git mv old.js new.js 는 사실 이것과 동일:

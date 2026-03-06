@@ -20,6 +20,17 @@
 
 ### 개념 1: GitHub Actions란?
 
+> 📊 **그림 1**: GitHub Actions의 이벤트 기반 자동화 흐름
+
+```mermaid
+flowchart LR
+    A["이벤트 발생<br/>push, PR, issue 등"] --> B["워크플로우 트리거"]
+    B --> C["Job 실행<br/>Runner 할당"]
+    C --> D["Step 순차 실행"]
+    D --> E["결과 보고<br/>성공 / 실패"]
+```
+
+
 > 💡 **비유**: GitHub Actions는 **자동 반응 로봇**입니다. "누군가 코드를 push하면 테스트를 실행해줘", "PR이 올라오면 린트를 체크해줘"처럼 **이벤트와 할 일을 정해두면**, 로봇이 알아서 실행합니다. 마치 스마트홈에서 "문이 열리면 불을 켜줘"라고 설정하는 것과 같죠.
 
 GitHub Actions는 GitHub에 **내장된 CI/CD 및 자동화 플랫폼**입니다. 코드 push, PR 생성, 이슈 등록 같은 **이벤트**가 발생하면, 미리 정의한 **작업(워크플로우)**을 자동으로 실행합니다.
@@ -27,6 +38,22 @@ GitHub Actions는 GitHub에 **내장된 CI/CD 및 자동화 플랫폼**입니다
 [템플릿과 자동화](../07-issues-projects/04-templates.md)에서 이미 라벨링과 비활성 이슈 자동 닫기를 경험해보셨는데요, 이번 챕터에서는 이를 체계적으로 배워봅니다.
 
 ### 개념 2: 핵심 구조 — 4가지 구성 요소
+
+> 📊 **그림 2**: GitHub Actions의 4계층 구조
+
+```mermaid
+graph TD
+    W["Workflow<br/>.github/workflows/*.yml"] --> J1["Job: build"]
+    W --> J2["Job: test"]
+    W --> J3["Job: deploy"]
+    J1 --> S1["Step 1: checkout"]
+    J1 --> S2["Step 2: setup-node"]
+    J1 --> S3["Step 3: npm install"]
+    S1 --> A1["Action<br/>actions/checkout@v4"]
+    S2 --> A2["Action<br/>actions/setup-node@v4"]
+    S3 --> A3["run: npm install"]
+```
+
 
 GitHub Actions는 4개의 계층으로 이루어져 있습니다:
 
@@ -76,6 +103,19 @@ Sat Feb 15 12:00:00 UTC 2026
 
 ### 개념 3: Runner — 워크플로우가 실행되는 곳
 
+> 📊 **그림 3**: Runner 종류와 실행 환경
+
+```mermaid
+flowchart TD
+    GH["GitHub Actions"] --> R1["GitHub-hosted Runner"]
+    GH --> R2["Self-hosted Runner"]
+    R1 --> U["ubuntu-latest<br/>비용: 1x"]
+    R1 --> M["macos-latest<br/>비용: 10x"]
+    R1 --> WI["windows-latest<br/>비용: 2x"]
+    R2 --> ON["사내 서버<br/>특수 환경"]
+```
+
+
 **Runner**는 워크플로우가 실행되는 서버(가상머신)입니다. GitHub이 제공하는 것과 직접 운영하는 것이 있습니다.
 
 | Runner 종류 | 설명 | 사용 예 |
@@ -97,6 +137,19 @@ jobs:
 > 💡 **알고 계셨나요?**: GitHub-hosted runner는 **매번 새로운 VM**에서 실행됩니다. 이전 실행의 흔적이 남지 않는 "깨끗한 환경"이죠. 이 덕분에 "내 PC에서는 되는데..."라는 문제를 방지할 수 있습니다.
 
 ### 개념 4: Actions 마켓플레이스
+
+> 📊 **그림 4**: Step에서 Action을 사용하는 두 가지 방식
+
+```mermaid
+flowchart LR
+    S["Step"] --> U["uses: 키워드<br/>마켓플레이스 Action"]
+    S --> R["run: 키워드<br/>셸 명령어 직접 실행"]
+    U --> MP["마켓플레이스<br/>25,000+ Actions"]
+    U --> CU["커스텀 Action<br/>자체 저장소"]
+    MP --> V["Verified Creator<br/>검증된 제작자"]
+    MP --> C["Community<br/>커뮤니티 제작"]
+```
+
 
 모든 것을 직접 만들 필요는 없습니다. **마켓플레이스**에는 25,000개 이상의 Action이 있습니다.
 

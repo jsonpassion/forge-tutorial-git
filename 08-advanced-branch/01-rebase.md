@@ -32,6 +32,21 @@
 3. 현재 브랜치를 `main`의 끝으로 **이동**한다
 4. 저장해둔 커밋들을 **하나씩 다시 적용**한다
 
+> 📊 **그림 1**: Rebase 내부 동작 — 커밋을 떼어내 새 베이스 위에 다시 적용
+
+```mermaid
+flowchart TD
+    subgraph before ["Rebase 전"]
+        M1["main: A"] --> M2["main: B"] --> M3["main: C"]
+        M1 --> F1["feature: D"] --> F2["feature: E"]
+    end
+    subgraph after ["Rebase 후"]
+        M4["main: A"] --> M5["main: B"] --> M6["main: C"] --> F3["feature: D'"] --> F4["feature: E'"]
+    end
+    before -->|"git rebase main"| after
+```
+
+
 결과적으로 마치 `main`의 최신 상태에서 처음부터 작업한 것처럼 보입니다.
 
 > **중요**: 다시 적용된 커밋은 내용은 같지만 **커밋 해시가 완전히 달라집니다**. 새로운 커밋이 만들어지는 거예요.
@@ -64,6 +79,24 @@ git rebase main
 | 원래 커밋 해시 | 보존됨 | 변경됨 (새 해시) |
 | 충돌 해결 | 한 번에 | 커밋마다 한 번씩 |
 | 안전성 | 히스토리 변경 없음 | 히스토리를 다시 씀 |
+
+> 📊 **그림 2**: Merge vs Rebase — 히스토리 형태 비교
+
+```mermaid
+flowchart LR
+    subgraph merge_result ["Merge 결과"]
+        direction TB
+        A1["A"] --> B1["B"]
+        A1 --> D1["D"] --> E1["E"]
+        B1 --> MG["M<br/>merge commit"]
+        E1 --> MG
+    end
+    subgraph rebase_result ["Rebase 결과"]
+        direction TB
+        A2["A"] --> B2["B"] --> D2["D'"] --> E2["E'"]
+    end
+```
+
 
 ```bash
 # merge 결과의 히스토리
@@ -121,6 +154,21 @@ Fast-forward
 
 ### 개념 4: 황금 규칙 — 절대 하면 안 되는 것
 
+> 📊 **그림 3**: Rebase 안전 판단 플로우 — push 여부가 핵심
+
+```mermaid
+flowchart TD
+    Q1{"커밋을 이미<br/>push 했는가?"}
+    Q1 -->|"Yes"| D1["X 절대 rebase 금지"]
+    Q1 -->|"No"| Q2{"다른 사람이<br/>이 브랜치를 사용?"}
+    Q2 -->|"Yes"| D2["X rebase 위험<br/>팀과 협의 필요"]
+    Q2 -->|"No"| D3["O 안전하게<br/>rebase 가능"]
+    D1 --> M1["git merge 사용"]
+    D2 --> M1
+    D3 --> R1["git rebase main"]
+```
+
+
 > ⚠️ **Rebase의 황금 규칙**: **이미 공유된(push된) 커밋은 절대 rebase하지 마세요.**
 
 왜 위험할까요?
@@ -152,6 +200,24 @@ git push --force-with-lease
 ```
 
 ### 개념 5: Rebase 중 충돌 해결
+
+> 📊 **그림 4**: Rebase 충돌 해결 흐름 — 세 가지 선택지
+
+```mermaid
+stateDiagram-v2
+    [*] --> Rebasing: git rebase main
+    Rebasing --> Conflict: 충돌 발생
+    Rebasing --> Done: 충돌 없음
+    Conflict --> Editing: 충돌 파일 수정
+    Editing --> Staged: git add
+    Staged --> Rebasing: git rebase --continue
+    Conflict --> Skipped: git rebase --skip
+    Skipped --> Rebasing
+    Conflict --> Aborted: git rebase --abort
+    Aborted --> [*]: 원래 상태 복구
+    Done --> [*]: rebase 완료
+```
+
 
 merge는 충돌을 한 번에 해결하지만, rebase는 **커밋마다** 충돌이 발생할 수 있습니다.
 
@@ -191,6 +257,23 @@ git config --global rerere.enabled true
 ```
 
 ### 개념 6: git pull --rebase
+
+> 📊 **그림 5**: git pull의 두 가지 모드 비교
+
+```mermaid
+flowchart LR
+    subgraph default_pull ["git pull (기본)"]
+        direction LR
+        PF1["fetch"] --> PM1["merge"]
+        PM1 --> PR1["머지 커밋 생성"]
+    end
+    subgraph rebase_pull ["git pull --rebase"]
+        direction LR
+        PF2["fetch"] --> PR2["rebase"]
+        PR2 --> PR3["선형 히스토리"]
+    end
+```
+
 
 `git pull`은 기본적으로 `fetch + merge`입니다. `--rebase` 옵션을 쓰면 `fetch + rebase`로 동작해서 불필요한 머지 커밋을 피할 수 있어요.
 

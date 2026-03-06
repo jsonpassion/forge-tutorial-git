@@ -108,6 +108,20 @@ git config user.name
 
 Git 설정에는 세 가지 범위가 있으며, 좁은 범위가 넓은 범위를 덮어씁니다:
 
+> 📊 **그림 1**: git config 설정의 3단계 우선순위 — 좁은 범위가 넓은 범위를 덮어씁니다
+
+```mermaid
+graph TD
+    S["System<br/>/etc/gitconfig<br/>모든 사용자"] --> G["Global<br/>~/.gitconfig<br/>현재 사용자"]
+    G --> L["Local<br/>.git/config<br/>현재 저장소"]
+    L --> R["최종 적용 값"]
+    style S fill:#e0e0e0,stroke:#999
+    style G fill:#bbdefb,stroke:#1976d2
+    style L fill:#c8e6c9,stroke:#388e3c
+    style R fill:#fff9c4,stroke:#f9a825
+```
+
+
 | 범위 | 플래그 | 적용 대상 | 설정 파일 위치 |
 |------|--------|----------|---------------|
 | System | `--system` | 컴퓨터의 모든 사용자 | `/etc/gitconfig` |

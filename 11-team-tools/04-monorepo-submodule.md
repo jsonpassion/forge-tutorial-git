@@ -15,6 +15,23 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: 모노레포 vs 멀티레포 — 저장소 전략 개관
+
+```mermaid
+flowchart LR
+    subgraph mono["모노레포 전략"]
+        R1["하나의 저장소"] --> A1["프론트엔드"]
+        R1 --> A2["백엔드"]
+        R1 --> A3["공유 라이브러리"]
+    end
+    subgraph multi["멀티레포 전략"]
+        R2["저장소 A"] -.->|"npm 패키지"| R4["저장소 C"]
+        R3["저장소 B"] -.->|"npm 패키지"| R4
+    end
+    mono ===|"vs"| multi
+```
+
+
 스타트업이 성장하면 코드베이스도 커집니다. 처음에는 하나의 저장소에 모든 코드를 넣었는데, 팀이 10명, 20명으로 늘면서 문제가 생기기 시작합니다 — CI가 느려지고, 관련 없는 변경 알림이 쏟아지고, 배포 단위가 모호해지죠. 반대로 저장소를 너무 잘게 나누면 공통 코드 동기화, 버전 관리, 의존성 문제가 생깁니다.
 
 Google, Meta, Microsoft 같은 빅테크 기업들이 왜 모노레포를 선택했는지, 반대로 Netflix, Amazon이 왜 멀티레포를 선호하는지 — 각각의 이유를 이해하면 여러분의 프로젝트에도 올바른 선택을 할 수 있습니다.
@@ -128,6 +145,26 @@ on:
 
 서브모듈은 **하나의 Git 저장소 안에 다른 Git 저장소**를 포함하는 기능입니다. 메인 프로젝트가 외부 라이브러리를 **특정 버전**으로 고정해서 사용할 때 유용합니다.
 
+> 📊 **그림 2**: Git Submodule의 참조 구조
+
+```mermaid
+graph TD
+    subgraph main["메인 저장소"]
+        M1["README.md"]
+        M2[".gitmodules"]
+        M3["src/"]
+        M4["libs/shared-ui<br/>(커밋 a1b2c3 고정)"]
+    end
+    subgraph ext["외부 저장소<br/>team/shared-ui"]
+        E1["v2.0.0 - 커밋 f5e6d7"]
+        E2["v2.1.0 - 커밋 a1b2c3"]
+        E3["v2.2.0 - 커밋 x9y8z7"]
+    end
+    M4 -->|"포인터 참조"| E2
+    style E2 fill:#4CAF50,color:#fff
+```
+
+
 ```bash
 # 서브모듈 추가
 git submodule add https://github.com/team/shared-ui.git libs/shared-ui
@@ -203,6 +240,21 @@ git commit -m "chore: shared-ui 서브모듈을 v2.2.0으로 업데이트"
 
 ### 개념 4: Git Subtree — 코드를 직접 포함
 
+> 📊 **그림 3**: Submodule(참조) vs Subtree(복사) 동작 방식
+
+```mermaid
+flowchart TD
+    subgraph sm["Submodule 방식"]
+        SM1["메인 저장소"] -->|"포인터만 저장"| SM2["libs/shared-ui<br/>(커밋 해시)"]
+        SM2 -.->|"clone 시 별도 fetch"| SM3["외부 저장소"]
+    end
+    subgraph st["Subtree 방식"]
+        ST1["메인 저장소"] -->|"코드 직접 포함"| ST2["libs/shared-ui<br/>(전체 파일)"]
+        ST2 -->|"히스토리 통합"| ST3["메인 히스토리에<br/>커밋 병합"]
+    end
+```
+
+
 > 💡 **비유**: 서브모듈이 "참고 문헌 링크"라면, 서브트리는 **"전문 인용"**입니다. 다른 논문의 내용을 내 논문에 직접 포함시키는 것처럼, 다른 저장소의 코드를 내 저장소의 히스토리에 직접 병합합니다.
 
 ```bash
@@ -242,6 +294,26 @@ git subtree push --prefix=libs/shared-ui \
 
 [clone과 fork](../04-remote/02-clone-fork.md)에서 잠깐 언급했던 sparse-checkout을 본격적으로 다뤄봅시다. 모노레포가 수 GB에 달하면 전체를 체크아웃할 필요가 없거든요:
 
+> 📊 **그림 5**: sparse-checkout으로 필요한 부분만 체크아웃
+
+```mermaid
+flowchart LR
+    A["git clone<br/>--filter=blob:none<br/>--sparse"] --> B["최소 메타데이터만<br/>다운로드"]
+    B --> C["sparse-checkout set<br/>apps/web packages/ui"]
+    C --> D["작업 디렉토리"]
+    subgraph D["로컬 파일 구조"]
+        D1["apps/web - 체크아웃 O"]
+        D2["packages/ui - 체크아웃 O"]
+        D3["apps/api - 체크아웃 X"]
+        D4["apps/mobile - 체크아웃 X"]
+    end
+    style D1 fill:#4CAF50,color:#fff
+    style D2 fill:#4CAF50,color:#fff
+    style D3 fill:#999,color:#fff
+    style D4 fill:#999,color:#fff
+```
+
+
 ```bash
 # 1. 부분 clone (blob 없이 트리만)
 git clone --filter=blob:none --sparse \
@@ -274,6 +346,25 @@ packages/ui
 ```
 
 ## 실습: 서브모듈 워크플로우 체험
+
+> 📊 **그림 4**: 서브모듈 워크플로우 — 추가부터 팀원 clone까지
+
+```mermaid
+sequenceDiagram
+    participant Dev as 개발자 A
+    participant Main as 메인 저장소
+    participant Lib as shared-lib 저장소
+    participant Clone as 개발자 B
+    Dev->>Main: git init (메인 프로젝트 생성)
+    Dev->>Lib: git init (공유 라이브러리 생성)
+    Dev->>Main: git submodule add ../shared-lib
+    Main->>Main: .gitmodules 생성 + 커밋 해시 기록
+    Dev->>Main: git commit
+    Clone->>Main: git clone --recurse-submodules
+    Main-->>Clone: 메인 코드 + 서브모듈 자동 초기화
+    Note over Clone: libs/shared/ 에<br/>shared-lib 코드 포함
+```
+
 
 ```bash
 # 1. 메인 프로젝트 생성

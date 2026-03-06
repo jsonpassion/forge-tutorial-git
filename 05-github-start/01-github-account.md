@@ -15,6 +15,21 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: GitHub 프로필 페이지의 구성 요소
+
+```mermaid
+graph TD
+    P["GitHub 프로필 페이지"] --> A["기본 정보<br/>사진, 이름, 바이오"]
+    P --> B["프로필 README<br/>자기소개 마크다운"]
+    P --> C["핀 저장소<br/>대표 프로젝트 최대 6개"]
+    P --> D["기여 그래프<br/>1년간 활동 시각화"]
+    P --> E["저장소 목록<br/>전체 프로젝트"]
+    style B fill:#2ea44f,color:#fff
+    style C fill:#2ea44f,color:#fff
+    style D fill:#2ea44f,color:#fff
+```
+
+
 GitHub 프로필은 개발자의 **온라인 이력서**와 같습니다. 채용 담당자, 동료 개발자, 오픈소스 커뮤니티 — 모두 여러분의 GitHub 프로필을 봅니다. 잘 정리된 프로필은 "이 사람은 어떤 개발자인가?"를 한눈에 보여주는 강력한 도구가 됩니다.
 
 ## 핵심 개념
@@ -82,6 +97,21 @@ git push origin main
 ```
 
 프로필 README를 만들 때 지켜야 할 조건:
+
+> 📊 **그림 3**: 프로필 README가 표시되는 조건
+
+```mermaid
+flowchart LR
+    A["저장소 생성"] --> B{"이름 = 사용자명?"}
+    B -- 아니오 --> X["일반 저장소"]
+    B -- 예 --> C{"공개(public)?"}
+    C -- 아니오 --> X
+    C -- 예 --> D{"README.md 존재?"}
+    D -- 아니오 --> X
+    D -- 예 --> E["프로필 상단에<br/>README 표시"]
+    style E fill:#2ea44f,color:#fff
+```
+
 - 저장소 이름이 **사용자명과 정확히 동일**해야 합니다
 - 저장소가 **공개(public)**이어야 합니다
 - **README.md** 파일이 루트에 있어야 합니다
@@ -102,6 +132,26 @@ git push origin main
 - **Discussion** 답변
 
 **기여가 기록되지 않는 흔한 원인**:
+
+> 📊 **그림 2**: 커밋이 기여로 인정되는 조건 흐름
+
+```mermaid
+flowchart TD
+    A["커밋 생성"] --> B{"git config 이메일이<br/>GitHub 이메일과 일치?"}
+    B -- 불일치 --> X1["기여 미인정"]
+    B -- 일치 --> C{"기본 브랜치<br/>또는 gh-pages?"}
+    C -- 아니오 --> X2["기여 미인정"]
+    C -- 예 --> D{"fork 저장소?"}
+    D -- 예 --> E{"원본에 머지됨?"}
+    E -- 아니오 --> X3["기여 미인정"]
+    E -- 예 --> OK["기여 인정 - 잔디 표시"]
+    D -- 아니오 --> OK
+    style OK fill:#2ea44f,color:#fff
+    style X1 fill:#d73a49,color:#fff
+    style X2 fill:#d73a49,color:#fff
+    style X3 fill:#d73a49,color:#fff
+```
+
 - `git config`의 이메일이 GitHub 계정 이메일과 **다른** 경우
 - fork한 저장소에서의 커밋 (원본에 머지되기 전까지)
 - 기본 브랜치가 아닌 브랜치에서의 커밋

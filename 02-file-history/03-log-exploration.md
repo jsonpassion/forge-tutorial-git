@@ -14,6 +14,22 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: Git 히스토리 탐색 도구 전체 지도
+
+```mermaid
+graph TD
+    Q["히스토리 질문"] --> A["언제 변경됐지?"]
+    Q --> B["누가 작성했지?"]
+    Q --> C["얼마나 기여했지?"]
+    Q --> D["무엇이 변경됐지?"]
+    A --> L["git log<br/>커밋 이력 조회"]
+    B --> BL["git blame<br/>줄별 작성자 추적"]
+    C --> SL["git shortlog<br/>기여자 통계"]
+    D --> SH["git show<br/>커밋 상세 내용"]
+    L --> F["--grep, -S, -G<br/>필터링/검색"]
+```
+
+
 "이 버그가 언제부터 있었지?", "이 코드를 누가 작성했지?", "지난달에 어떤 변경이 있었지?" — 개발을 하다 보면 이런 질문이 수시로 생깁니다. Git의 히스토리 탐색 도구는 이 모든 질문에 답을 줄 수 있는데요, 도구를 얼마나 잘 쓰느냐에 따라 **몇 시간이 걸릴 디버깅이 몇 분 만에** 끝나기도 합니다.
 
 ## 핵심 개념
@@ -83,6 +99,19 @@ git log --date=iso --format="%h %ad %s"
 
 #### 커밋 필터링 — 원하는 것만 찾기
 
+> 📊 **그림 2**: git log 필터링 옵션 분류
+
+```mermaid
+flowchart LR
+    LOG["git log"] --> BY_COUNT["-N<br/>개수 제한"]
+    LOG --> BY_DATE["--after / --before<br/>날짜 범위"]
+    LOG --> BY_AUTHOR["--author<br/>작성자"]
+    LOG --> BY_MSG["--grep<br/>메시지 검색"]
+    LOG --> BY_FILE["-- path<br/>파일 경로"]
+    LOG --> BY_CODE["-S / -G<br/>코드 변경 추적"]
+```
+
+
 이 부분이 실무에서 정말 많이 쓰이는데요:
 
 ```bash
@@ -143,6 +172,20 @@ b3c4d5e1 (홍길동 2026-02-15 14:00:00 +0900  6) ## 사용법
 ```
 
 #### blame 활용 옵션
+
+> 📊 **그림 3**: git blame 옵션별 추적 범위
+
+```mermaid
+flowchart TD
+    BL["git blame"] --> BASIC["기본<br/>줄별 작성자 표시"]
+    BL --> RANGE["-L 10,20<br/>줄 범위 지정"]
+    BL --> FUNC["-L :funcName<br/>함수 단위 추적"]
+    BL --> WHITESPACE["-w<br/>공백 변경 무시"]
+    BL --> MOVE["-M<br/>같은 파일 내 이동 감지"]
+    BL --> COPY["-C<br/>다른 파일에서 복사 감지"]
+    MOVE -.->|"더 넓은 추적"| COPY
+```
+
 
 ```bash
 # 특정 줄 범위만 확인 (10~20번째 줄)

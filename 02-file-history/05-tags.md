@@ -22,6 +22,20 @@
 
 > 💡 **비유**: 태그는 **책갈피**와 같습니다. 경량 태그는 그냥 페이지 사이에 끼워두는 얇은 종이 책갈피이고, 주석 태그는 메모까지 적을 수 있는 포스트잇 책갈피인 셈이죠.
 
+> 📊 **그림 1**: 경량 태그 vs 주석 태그의 내부 구조
+
+```mermaid
+graph LR
+    subgraph 경량태그["경량 태그"]
+        LT["v0.1"] -->|"참조"| C1["커밋 a1b2c3d"]
+    end
+    subgraph 주석태그["주석 태그"]
+        AT["v1.0.0"] -->|"참조"| TO["태그 객체<br/>작성자: 홍길동<br/>날짜: 2026-02-15<br/>메시지: 첫 릴리스"]
+        TO -->|"참조"| C2["커밋 a1b2c3d"]
+    end
+```
+
+
 #### 1. 경량 태그 (Lightweight Tag)
 
 경량 태그는 단순히 특정 커밋을 가리키는 **포인터**입니다. 추가 정보가 없어서 임시 표시나 개인 용도에 적합합니다.
@@ -104,6 +118,18 @@ MAJOR.MINOR.PATCH
 2. `1.0.0`이 **공개 API의 시작점** — 이 이후부터 규칙을 엄격히 지킴
 3. MAJOR를 올리면 MINOR와 PATCH는 0으로 초기화 (`1.4.2` → `2.0.0`)
 4. MINOR를 올리면 PATCH는 0으로 초기화 (`1.4.2` → `1.5.0`)
+
+> 📊 **그림 2**: 시맨틱 버저닝 — 버전 증가 흐름
+
+```mermaid
+flowchart TD
+    V1["v1.4.2"] -->|"버그 수정<br/>PATCH +1"| V2["v1.4.3"]
+    V1 -->|"새 기능 추가<br/>MINOR +1, PATCH 초기화"| V3["v1.5.0"]
+    V1 -->|"호환 깨지는 변경<br/>MAJOR +1, 나머지 초기화"| V4["v2.0.0"]
+    V4 -->|"버그 수정"| V5["v2.0.1"]
+    V4 -->|"새 기능 추가"| V6["v2.1.0"]
+```
+
 5. 프리릴리스: `1.0.0-alpha`, `1.0.0-beta.1`, `1.0.0-rc.1` 형식 사용
 
 ```bash
@@ -129,6 +155,22 @@ git push origin --delete v0.1
 #### 원격 저장소에 태그 공유
 
 태그는 `git push`만으로는 원격에 전송되지 않습니다. **명시적으로 push**해야 합니다:
+
+> 📊 **그림 3**: 태그의 로컬-원격 공유 워크플로우
+
+```mermaid
+sequenceDiagram
+    participant D as 개발자
+    participant L as 로컬 저장소
+    participant R as 원격 저장소(GitHub)
+    D->>L: git tag -a v1.0.0 -m '릴리스'
+    Note over L: 태그는 로컬에만 존재
+    D->>R: git push origin main
+    Note over R: 코드만 전송, 태그 없음
+    D->>R: git push origin v1.0.0
+    Note over R: 태그 수신 → 릴리스 자동 생성
+```
+
 
 ```bash
 # 특정 태그 push
@@ -245,6 +287,18 @@ git tag -v v1.0.0
 ## 흔한 오해와 팁
 
 > ⚠️ **흔한 오해**: "태그는 브랜치와 같다" — 아닙니다! 브랜치는 새 커밋이 추가되면 **자동으로 이동**하는 포인터이지만, 태그는 특정 커밋에 **고정된** 이름표입니다. 태그가 가리키는 커밋은 절대 바뀌지 않아요.
+
+> 📊 **그림 4**: 브랜치 vs 태그 — 커밋 추가 시 동작 차이
+
+```mermaid
+graph LR
+    C1["커밋 1"] --> C2["커밋 2"] --> C3["커밋 3"]
+    TAG["v1.0.0"] -.->|"고정"| C2
+    BRANCH["main"] -.->|"이동"| C3
+    style TAG fill:#f9a825,color:#000
+    style BRANCH fill:#43a047,color:#fff
+```
+
 
 > 🔥 **실무 팁**: GitHub/GitLab에서 태그를 push하면 자동으로 **릴리스(Release)**를 만들 수 있습니다. [GitHub Actions](../10-github-actions/04-cd.md)와 결합하면 태그를 push하는 것만으로 빌드, 테스트, 배포가 자동으로 진행되는 CD(Continuous Deployment) 파이프라인을 구축할 수 있죠.
 

@@ -35,6 +35,18 @@ git clone https://github.com/username/project.git
 4. 원격 URL을 `origin`이라는 이름으로 자동 등록
 5. 기본 브랜치(main)를 체크아웃
 
+> 📊 **그림 1**: git clone이 내부적으로 수행하는 5단계
+
+```mermaid
+flowchart TD
+    A["git clone URL 실행"] --> B["1. 로컬에 폴더 생성"]
+    B --> C["2. .git 디렉토리 초기화"]
+    C --> D["3. 원격 데이터 전체 다운로드"]
+    D --> E["4. origin으로 URL 등록"]
+    E --> F["5. 기본 브랜치 체크아웃"]
+```
+
+
 ```bash
 # 다른 폴더 이름으로 clone
 git clone https://github.com/username/project.git my-folder
@@ -89,9 +101,44 @@ gh repo fork original-author/project
 
 **한 줄 요약**: 권한이 있으면 **clone**, 없으면(또는 독립적으로 발전시키고 싶으면) **fork → clone**.
 
+> 📊 **그림 2**: clone과 fork의 동작 위치 비교
+
+```mermaid
+graph TD
+    subgraph GitHub
+        ORIG["원본 저장소<br/>original-author/project"]
+        FORK["내 Fork<br/>my-account/project"]
+    end
+    subgraph 내 컴퓨터
+        LOCAL["로컬 저장소"]
+    end
+    ORIG -->|"clone<br/>(권한 있을 때)"| LOCAL
+    ORIG -->|"fork<br/>(GitHub 복사)"| FORK
+    FORK -->|"clone"| LOCAL
+```
+
+
 ### 개념 4: fork → clone → upstream 워크플로우
 
 오픈소스 프로젝트에 기여하는 표준 워크플로우입니다:
+
+> 📊 **그림 3**: fork → clone → upstream 오픈소스 기여 워크플로우
+
+```mermaid
+sequenceDiagram
+    participant O as 원본 저장소<br/>(upstream)
+    participant F as 내 Fork<br/>(origin)
+    participant L as 로컬 저장소
+    O->>F: 1. Fork (GitHub에서)
+    F->>L: 2. git clone
+    L->>L: 3. git remote add upstream
+    O->>L: 4. git fetch upstream
+    L->>L: 5. git merge upstream/main
+    L->>L: 6. 브랜치 생성 + 작업
+    L->>F: 7. git push origin
+    F->>O: 8. Pull Request
+```
+
 
 **1단계: fork** — GitHub에서 원본 프로젝트를 내 계정으로 fork
 

@@ -21,6 +21,23 @@ GitHub에서 프로젝트를 시작하려면 **저장소(repository)**를 만들
 
 ### 개념 1: 저장소 생성 — 웹 vs CLI
 
+> 📊 **그림 1**: 저장소 생성 3가지 방법 비교
+
+```mermaid
+flowchart TD
+    START["저장소 만들기"] --> A["방법 1: GitHub 웹"]
+    START --> B["방법 2: GitHub CLI"]
+    START --> C["방법 3: 로컬 먼저"]
+    A --> A1["브라우저에서<br/>New repository 클릭"]
+    A1 --> RESULT["GitHub 저장소 생성 완료"]
+    B --> B1["gh repo create<br/>한 줄 명령"]
+    B1 --> RESULT
+    C --> C1["git init로<br/>로컬 초기화"]
+    C1 --> C2["gh repo create<br/>--source=. --push"]
+    C2 --> RESULT
+```
+
+
 > 💡 **비유**: 저장소 만들기는 **새 노트 한 권을 펼치는 것**과 같습니다. 노트를 펼치면서 표지에 이름(README)을 쓰고, 사용 규칙(LICENSE)을 정하고, "이 페이지는 안 쓸 거야(.gitignore)"라고 표시해두는 거죠.
 
 #### 방법 1: GitHub 웹에서 생성
@@ -71,6 +88,19 @@ gh repo create my-project --public --source=. --push
 
 ### 개념 2: README.md — 프로젝트의 얼굴
 
+> 📊 **그림 2**: 저장소 초기 파일 구조와 역할
+
+```mermaid
+graph TD
+    REPO["GitHub 저장소"] --> README["README.md<br/>프로젝트 소개"]
+    REPO --> LICENSE["LICENSE<br/>사용 규칙"]
+    REPO --> IGNORE[".gitignore<br/>제외 파일 목록"]
+    README --> R1["방문자가 가장<br/>먼저 보는 파일"]
+    LICENSE --> L1["법적 사용 조건<br/>명시"]
+    IGNORE --> I1["불필요한 파일<br/>추적 방지"]
+```
+
+
 > 💡 **비유**: README는 **상품의 포장지**입니다. 아무리 좋은 내용물(코드)이 들어 있어도, 포장(README)이 없으면 사람들은 뭐가 들었는지 모르고 지나칩니다.
 
 README.md는 저장소에 방문한 사람이 **가장 먼저 보는 파일**입니다. GitHub는 저장소 메인 페이지에 README.md 내용을 자동으로 렌더링합니다.
@@ -100,6 +130,20 @@ README.md는 저장소에 방문한 사람이 **가장 먼저 보는 파일**입
 > ⚠️ **흔한 오해**: "README는 나중에 쓰면 된다" — README 없는 저장소는 설명서 없는 조립 가구와 같습니다. 프로젝트를 시작할 때 최소한의 README를 작성하고, 프로젝트가 발전하면서 함께 업데이트하는 게 좋은 습관이에요.
 
 ### 개념 3: LICENSE — 내 코드의 사용 규칙
+
+> 📊 **그림 3**: 오픈소스 라이선스 자유도 스펙트럼
+
+```mermaid
+flowchart LR
+    A["자유도 높음"] -.-> B["MIT / BSD"]
+    B -.-> C["Apache 2.0"]
+    C -.-> D["GPL 3.0"]
+    D -.-> E["자유도 낮음"]
+    B --- B1["저작권 표시만<br/>하면 자유 사용"]
+    C --- C1["저작권 표시 +<br/>변경 사항 명시"]
+    D --- D1["파생 코드도<br/>GPL로 공개 필수"]
+```
+
 
 > 💡 **비유**: LICENSE는 **집의 방문 규칙**입니다. "자유롭게 구경하세요(MIT)", "구경은 가능하지만 변경은 안 돼요(소스 공개 조건부)", "나의 허락 없이는 출입 금지(All Rights Reserved)" 같은 규칙이죠.
 

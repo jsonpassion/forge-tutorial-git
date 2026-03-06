@@ -16,6 +16,21 @@
 
 혼자 코딩할 때는 로컬 저장소만으로도 충분합니다. 하지만 현실의 개발은 대부분 **팀 작업**이죠. 코드를 팀원과 공유하고, 백업하고, 어디서든 접근하려면 원격 저장소가 필수입니다. GitHub, GitLab, Bitbucket 같은 플랫폼이 바로 이 원격 저장소를 호스팅하는 서비스예요. 원격 저장소의 구조를 제대로 이해해야 `push`, `pull`, `fetch` 같은 명령어가 **왜 그렇게 동작하는지** 감이 잡힙니다.
 
+> 📊 **그림 1**: 로컬 저장소와 원격 저장소의 관계
+
+```mermaid
+graph LR
+    subgraph 내컴퓨터["내 컴퓨터"]
+        LOCAL["로컬 저장소<br/>.git"]
+    end
+    subgraph 인터넷["인터넷 (GitHub 등)"]
+        REMOTE["원격 저장소<br/>origin"]
+    end
+    LOCAL -- "git push<br/>로컬 → 원격" --> REMOTE
+    REMOTE -- "git pull / fetch<br/>원격 → 로컬" --> LOCAL
+```
+
+
 ## 핵심 개념
 
 ### 개념 1: 원격 저장소란?
@@ -25,6 +40,19 @@
 원격 저장소는 **네트워크 어딘가에 있는 Git 저장소의 복사본**입니다. 로컬 저장소와 구조는 완전히 동일하지만, 여러 사람이 접근할 수 있다는 점이 다릅니다.
 
 **분산 버전 관리의 핵심**: Git에서는 모든 개발자가 **전체 히스토리의 완전한 사본**을 가지고 있습니다. 원격 저장소는 "중앙 서버"가 아니라, 팀이 합의한 **공유 지점(shared hub)**일 뿐이에요. 기술적으로는 어떤 저장소든 원격이 될 수 있습니다 — 심지어 같은 컴퓨터의 다른 폴더도요!
+
+> 📊 **그림 2**: 분산 버전 관리 — 모든 저장소가 완전한 사본
+
+```mermaid
+graph TD
+    REMOTE["공유 원격 저장소<br/>(GitHub)"]
+    A["개발자 A<br/>전체 히스토리 보유"] <--> REMOTE
+    B["개발자 B<br/>전체 히스토리 보유"] <--> REMOTE
+    C["개발자 C<br/>전체 히스토리 보유"] <--> REMOTE
+    A <-.-> B
+    style REMOTE fill:#f9f,stroke:#333
+```
+
 
 ```bash
 # 현재 저장소에 연결된 원격 저장소 확인
@@ -86,6 +114,22 @@ git remote add origin https://github.com/username/my-project.git
 |------|-------------|-----------|
 | **origin** | 내 GitHub 저장소 (fork한 사본) | push/pull 주 대상 |
 | **upstream** | 원본 프로젝트 저장소 | 원본의 최신 변경사항 가져오기 |
+
+> 📊 **그림 3**: Fork 워크플로에서 origin과 upstream의 관계
+
+```mermaid
+flowchart TD
+    UPSTREAM["upstream<br/>원본 저장소<br/>original-author/project"] -- "Fork (GitHub에서)" --> ORIGIN["origin<br/>내 Fork<br/>my-account/project"]
+    ORIGIN -- "git clone" --> LOCAL["로컬 저장소<br/>내 컴퓨터"]
+    LOCAL -- "git push" --> ORIGIN
+    ORIGIN -- "git pull" --> LOCAL
+    UPSTREAM -- "git fetch upstream<br/>원본 변경사항 가져오기" --> LOCAL
+    ORIGIN -- "Pull Request" --> UPSTREAM
+    style UPSTREAM fill:#ffd,stroke:#333
+    style ORIGIN fill:#dff,stroke:#333
+    style LOCAL fill:#dfd,stroke:#333
+```
+
 
 ```bash
 # 원본 저장소를 upstream으로 추가
@@ -159,6 +203,23 @@ git remote show origin
 > 💡 **비유**: 원격 추적 브랜치는 **뉴스 속보의 스냅샷**과 비슷합니다. "지금 이 순간 원격에 무엇이 있는가"를 찍어둔 사진이에요. 실시간이 아니라, 마지막으로 통신(`fetch`)했을 때의 상태입니다.
 
 원격 추적 브랜치는 `origin/main`, `origin/develop` 같은 형태로 표시됩니다. 이것은 **원격 저장소의 브랜치 상태를 로컬에 기록한 읽기 전용 포인터**예요.
+
+> 📊 **그림 4**: 원격 추적 브랜치의 동작 원리
+
+```mermaid
+sequenceDiagram
+    participant R as 원격 저장소 (origin)
+    participant T as 원격 추적 브랜치 (origin/main)
+    participant L as 로컬 브랜치 (main)
+    Note over R: 커밋 A → B → C
+    L->>R: git fetch
+    R-->>T: origin/main을 C로 업데이트
+    Note over T: 원격 상태의 스냅샷
+    Note over L: 아직 이전 상태
+    L->>L: git merge origin/main
+    Note over L: 이제 C까지 반영됨
+```
+
 
 ```bash
 # 원격 추적 브랜치 확인

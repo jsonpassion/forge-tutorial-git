@@ -76,11 +76,36 @@ Git에서 파일이 커밋되기까지는 세 개의 영역을 거칩니다. 이
 
 이 흐름을 정리하면:
 
+> 📊 **그림 1**: Git의 3단계 구조와 명령어 흐름
+
+```mermaid
+flowchart LR
+    WD["작업 디렉토리<br/>Working Directory"] -->|"git add"| SA["스테이징 영역<br/>Staging Area"]
+    SA -->|"git commit"| REPO["저장소<br/>Repository (.git)"]
+    style WD fill:#f9f,stroke:#333
+    style SA fill:#ff9,stroke:#333
+    style REPO fill:#9f9,stroke:#333
+```
+
+
 > **파일 수정** → `git add` → **스테이징** → `git commit` → **저장소에 기록**
 
 ### 파일의 상태 변화
 
 Git에서 파일은 네 가지 상태 중 하나에 놓입니다:
+
+> 📊 **그림 2**: 파일 상태 변화 흐름
+
+```mermaid
+stateDiagram-v2
+    [*] --> Untracked: 새 파일 생성
+    Untracked --> Staged: git add
+    Staged --> Committed: git commit
+    Committed --> Modified: 파일 수정
+    Modified --> Staged: git add
+    Staged --> Modified: git reset
+```
+
 
 | 상태 | 영문 | 설명 |
 |------|------|------|
@@ -140,6 +165,20 @@ git commit -m "프로젝트 초기화: README 추가"
 ### .git 디렉토리 들여다보기
 
 `.git` 안에는 어떤 것들이 있을까요? 지금은 전부 이해할 필요 없지만, 대략적인 구조를 알아두면 좋습니다:
+
+> 📊 **그림 3**: .git 디렉토리 내부 구조
+
+```mermaid
+graph TD
+    GIT[".git 디렉토리"] --> HEAD["HEAD<br/>현재 브랜치 포인터"]
+    GIT --> OBJ["objects/<br/>커밋, 파일 데이터"]
+    GIT --> REFS["refs/<br/>브랜치, 태그"]
+    GIT --> CONFIG["config<br/>로컬 설정"]
+    GIT --> INDEX["index<br/>스테이징 영역 데이터"]
+    REFS --> HEADS["heads/<br/>로컬 브랜치"]
+    REFS --> TAGS["tags/<br/>태그 목록"]
+```
+
 
 ```bash
 # .git 내부 구조 확인

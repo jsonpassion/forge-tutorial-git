@@ -15,6 +15,17 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: fetch와 pull의 동작 차이 — fetch는 확인만, pull은 확인+병합
+
+```mermaid
+flowchart LR
+    A["원격 저장소"] -->|fetch| B["원격 추적 브랜치<br/>origin/main"]
+    B -->|"개발자가 확인 후<br/>merge"| C["로컬 브랜치<br/>main"]
+    A -->|"pull = fetch + merge<br/>한 번에 실행"| C
+    C --> D["작업 디렉토리"]
+```
+
+
 실무에서 "일단 pull 해"라고 하는 사람이 많지만, 숙련된 개발자는 **fetch 먼저, 확인 후 merge**하는 습관을 가지고 있습니다. 중요한 릴리스 직전이나 복잡한 머지 상황에서 pull의 자동 merge가 문제를 일으킬 수 있거든요. 또한 오픈소스 기여나 사내 미러링 같은 상황에서는 여러 remote를 다루는 기술이 필수입니다.
 
 ## 핵심 개념
@@ -22,6 +33,25 @@
 ### 개념 1: fetch — "먼저 보고, 나중에 합치기"
 
 > 💡 **비유**: `git fetch`는 **우편함 확인**과 같습니다. "편지가 왔는지 확인만" 하는 거예요. 우편함(원격)에서 편지(변경사항)를 꺼내 책상 위에 올려두지만, **아직 읽지는 않은** 상태입니다. 반면 `git pull`은 편지를 꺼내서 바로 읽고(merge) 처리까지 해버리는 것이죠.
+
+> 📊 **그림 2**: fetch의 안전한 워크플로우 — 가져오기, 확인, 병합을 분리
+
+```mermaid
+sequenceDiagram
+    participant L as 로컬 브랜치
+    participant T as 원격 추적 브랜치<br/>origin/main
+    participant R as 원격 저장소
+    L->>R: git fetch origin
+    R-->>T: 변경사항 다운로드
+    Note over T: 작업 디렉토리 변화 없음
+    L->>T: git log HEAD..origin/main
+    Note over L,T: 새 커밋 확인
+    L->>T: git diff main origin/main
+    Note over L,T: 변경 내용 검토
+    L->>L: git merge origin/main
+    Note over L: 확인 후 병합 결정
+```
+
 
 ```bash
 # 원격의 변경사항을 다운로드 (작업 디렉토리에 영향 없음!)
@@ -82,6 +112,18 @@ git merge origin/main                # 확인 후 병합
 ### 개념 3: 다중 remote 관리
 
 하나의 로컬 저장소에 **여러 개의 원격 저장소**를 연결할 수 있습니다. 실무에서 흔한 시나리오를 볼게요:
+
+> 📊 **그림 3**: 다중 remote 구조 — 하나의 로컬 저장소에 여러 원격 연결
+
+```mermaid
+graph TD
+    L["로컬 저장소"] -->|"origin<br/>내 fork"| O["GitHub<br/>my-account/project"]
+    L -->|"upstream<br/>원본 저장소"| U["GitHub<br/>original/project"]
+    L -->|"company<br/>회사 서버"| C["GitLab<br/>company/project"]
+    L -->|"colleague<br/>동료 fork"| D["GitHub<br/>colleague/project"]
+    U -.->|fork| O
+```
+
 
 #### 시나리오 1: 오픈소스 기여 (origin + upstream)
 
@@ -146,6 +188,28 @@ git switch -c test-colleague-feature colleague/feature-auth
 
 팀원이 원격에서 브랜치를 삭제해도, 내 로컬의 **원격 추적 브랜치**(`origin/feature-old`)는 남아 있습니다. 시간이 지나면 이런 "유령 브랜치"가 쌓이게 되죠.
 
+> 📊 **그림 4**: prune 동작 — 원격에서 삭제된 브랜치의 로컬 참조 정리
+
+```mermaid
+flowchart LR
+    subgraph 원격저장소["원격 저장소"]
+        R1["main"]
+        R2["feature-new"]
+    end
+    subgraph 정리전["로컬 - prune 전"]
+        L1["origin/main"]
+        L2["origin/feature-old<br/>(유령 브랜치)"]
+        L3["origin/hotfix-done<br/>(유령 브랜치)"]
+        L4["origin/feature-new"]
+    end
+    subgraph 정리후["로컬 - prune 후"]
+        P1["origin/main"]
+        P4["origin/feature-new"]
+    end
+    정리전 -->|"git fetch --prune"| 정리후
+```
+
+
 ```bash
 # 원격에서 이미 삭제된 브랜치의 로컬 참조 확인
 git remote prune origin --dry-run
@@ -188,6 +252,23 @@ git branch -vv
 ```
 
 각 상태의 의미:
+
+> 📊 **그림 5**: 원격 브랜치 추적 상태 — ahead, behind, gone의 의미
+
+```mermaid
+stateDiagram-v2
+    [*] --> 동기화됨: push/pull 완료
+    동기화됨 --> Ahead: 로컬에 새 커밋
+    동기화됨 --> Behind: 원격에 새 커밋
+    Ahead --> AheadBehind: 원격에도 새 커밋 발생
+    Behind --> AheadBehind: 로컬에도 새 커밋 발생
+    Ahead --> 동기화됨: git push
+    Behind --> 동기화됨: git pull
+    AheadBehind --> 동기화됨: git pull + push
+    동기화됨 --> Gone: 원격 브랜치 삭제됨
+    Gone --> [*]: git branch -d로 정리
+```
+
 
 | 표시 | 의미 |
 |------|------|

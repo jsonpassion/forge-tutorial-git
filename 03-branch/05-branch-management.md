@@ -15,6 +15,19 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: 브랜치 관리의 주요 작업 흐름
+
+```mermaid
+flowchart LR
+    A["브랜치 목록 확인"] --> B{"머지 완료?"}
+    B -- Yes --> C["안전 삭제<br/>git branch -d"]
+    B -- No --> D{"정말 삭제?"}
+    D -- Yes --> E["강제 삭제<br/>git branch -D"]
+    D -- No --> F["유지 또는<br/>이름 변경"]
+    A --> G["prune으로<br/>원격 참조 정리"]
+```
+
+
 실무 프로젝트에서 `git branch`를 실행했을 때 브랜치가 수십 개 나열되는 건 흔한 일입니다. 이 중 절반은 이미 머지되어 필요 없는 것들이죠. 브랜치를 정리하지 않으면 "이 브랜치가 아직 작업 중인 건지, 다 끝난 건지" 파악하기 어려워지고, 팀원 간 혼란이 생깁니다. **깔끔한 브랜치 관리는 좋은 개발 습관**의 핵심입니다.
 
 ## 핵심 개념
@@ -118,6 +131,19 @@ If you are sure you want to delete it, run 'git branch -D feature-signup'.
 
 Git이 안전장치를 걸어준 거예요! 아직 머지되지 않은 브랜치는 `-d`로 삭제할 수 없습니다.
 
+> 📊 **그림 2**: 브랜치 삭제 안전장치 (-d vs -D)
+
+```mermaid
+flowchart TD
+    A["git branch -d 브랜치"] --> B{"머지 완료?"}
+    B -- Yes --> C["삭제 성공"]
+    B -- No --> D["삭제 거부<br/>error: not fully merged"]
+    D --> E{"강제 삭제?"}
+    E -- "git branch -D" --> F["강제 삭제 성공<br/>복구는 reflog로"]
+    E -- 취소 --> G["브랜치 유지"]
+```
+
+
 ```bash
 # ⚠️ 강제 삭제: 머지 여부와 상관없이 삭제
 git branch -D feature-signup
@@ -160,6 +186,19 @@ git branch -M old-name new-name
 
 원격 브랜치는 직접 이름을 바꿀 수 없어서, "삭제 후 새 이름으로 푸시"하는 방식을 사용합니다:
 
+> 📊 **그림 3**: 원격 브랜치 이름 변경 3단계
+
+```mermaid
+sequenceDiagram
+    participant L as 로컬
+    participant R as 원격(origin)
+    L->>L: git branch -m old new<br/>로컬 이름 변경
+    L->>R: git push origin new<br/>새 이름으로 푸시
+    L->>R: git push origin --delete old<br/>이전 이름 삭제
+    Note over R: 원격에 new만 남음
+```
+
+
 ```bash
 # 1. 로컬에서 이름 변경
 git branch -m old-feature new-feature
@@ -174,6 +213,20 @@ git push origin --delete old-feature
 > 🔥 **실무 팁**: 공유 브랜치의 이름을 변경할 때는 반드시 **팀원에게 먼저 알리세요**. 다른 사람이 이전 이름의 브랜치를 추적하고 있다면, 그들의 로컬 환경에서도 조치가 필요합니다.
 
 ### 브랜치 정리 전략
+
+> 📊 **그림 4**: 브랜치 정리 전략 워크플로우
+
+```mermaid
+flowchart TD
+    A["브랜치 정리 시작"] --> B["git fetch --prune<br/>원격 참조 정리"]
+    B --> C["git branch --merged main<br/>머지 완료 브랜치 확인"]
+    C --> D["main, develop 제외<br/>나머지 삭제"]
+    A --> E["git branch -v --sort<br/>오래된 브랜치 확인"]
+    E --> F{"아직 필요한가?"}
+    F -- No --> G["삭제 또는 태그 보존"]
+    F -- Yes --> H["유지"]
+```
+
 
 #### 원격에서 삭제된 브랜치 동기화: prune
 

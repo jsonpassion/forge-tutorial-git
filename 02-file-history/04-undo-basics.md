@@ -15,6 +15,27 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: 세 가지 되돌리기 도구 비교 — 각각의 영향 범위
+
+```mermaid
+flowchart LR
+    subgraph amend["amend"]
+        A1["마지막 커밋 교체"]
+    end
+    subgraph reset["reset"]
+        R1["HEAD 이동"]
+        R2["스테이징 초기화"]
+        R3["작업 디렉토리 초기화"]
+    end
+    subgraph revert["revert"]
+        V1["취소 커밋 새로 생성"]
+    end
+    A1 -.- |"push 전만"| A1
+    R1 --> R2 --> R3
+    V1 -.- |"push 후에도 안전"| V1
+```
+
+
 실수를 되돌리는 방법을 모르면, 잘못된 커밋 위에 "수정", "재수정", "진짜 최종" 같은 커밋을 쌓게 됩니다. 이력이 지저분해지는 것은 물론, 나중에 문제를 추적하기도 어려워지죠. **깔끔하게 되돌리는 능력**이야말로 Git을 제대로 활용하는 핵심 스킬입니다.
 
 ## 핵심 개념
@@ -68,6 +89,30 @@ git reset --hard HEAD~1
 
 세 모드의 차이를 표로 정리하면:
 
+> 📊 **그림 2**: git reset 세 가지 모드 — HEAD, 스테이징, 작업 디렉토리에 미치는 영향
+
+```mermaid
+flowchart TD
+    H["HEAD"] --> S["스테이징 영역"]
+    S --> W["작업 디렉토리"]
+
+    subgraph soft["--soft"]
+        HS["HEAD 이동"] -.-> SS["스테이징 유지"]
+        SS -.-> WS["작업 디렉토리 유지"]
+    end
+
+    subgraph mixed["--mixed (기본)"]
+        HM["HEAD 이동"] --> SM["스테이징 초기화"]
+        SM -.-> WM["작업 디렉토리 유지"]
+    end
+
+    subgraph hard["--hard (위험!)"]
+        HH["HEAD 이동"] --> SH["스테이징 초기화"]
+        SH --> WH["작업 디렉토리 초기화"]
+    end
+```
+
+
 | 모드 | HEAD | 스테이징 영역 | 작업 디렉토리 | 용도 |
 |------|------|-------------|-------------|------|
 | `--soft` | 이동 | **유지** | **유지** | 커밋만 취소하고 다시 커밋하고 싶을 때 |
@@ -115,6 +160,27 @@ git reset --hard HEAD~1
 
 ### git revert — 안전한 되돌리기
 
+> 📊 **그림 3**: reset vs revert — 이력 처리 방식의 차이
+
+```mermaid
+flowchart LR
+    subgraph before["원래 이력"]
+        C1["커밋 A"] --> C2["커밋 B"] --> C3["커밋 C"]
+    end
+
+    subgraph after_reset["reset 후"]
+        R1["커밋 A"] --> R2["커밋 B"]
+        R3["커밋 C (제거됨)"]:::removed
+    end
+
+    subgraph after_revert["revert 후"]
+        V1["커밋 A"] --> V2["커밋 B"] --> V3["커밋 C"] --> V4["Revert C"]
+    end
+
+    classDef removed fill:#ff6b6b,stroke:#c92a2a,color:#fff
+```
+
+
 > 💡 **비유**: `git revert`는 **취소선을 긋는 것**과 같습니다. 이전에 쓴 내용을 지우개로 지우는 게 아니라(reset), ~~이렇게~~ 취소선을 그어서 "이 부분은 없던 일로 합니다"라는 **새로운 기록**을 남기는 거죠.
 
 `git revert`는 특정 커밋의 변경을 **반대로 적용하는 새 커밋**을 만듭니다. 기존 이력을 수정하지 않으므로, **이미 push한 커밋을 되돌릴 때** 가장 안전한 방법입니다.
@@ -139,6 +205,22 @@ This reverts commit a1b2c3d4e5f6...
 ```
 
 ### reset vs revert — 언제 무엇을 쓸까?
+
+> 📊 **그림 4**: 상황별 되돌리기 도구 선택 가이드
+
+```mermaid
+flowchart TD
+    Q1{"무엇을 되돌리고 싶은가?"}
+    Q1 --> |"커밋 메시지/빠뜨린 파일"| AMEND["git commit --amend"]
+    Q1 --> |"커밋 자체를 취소"| Q2{"이미 push 했는가?"}
+    Q2 --> |"아니오"| RESET["git reset"]
+    Q2 --> |"예"| REVERT["git revert"]
+    RESET --> Q3{"변경 내용을<br/>어떻게 할 것인가?"}
+    Q3 --> |"스테이징에 보존"| SOFT["--soft"]
+    Q3 --> |"작업 디렉토리에 보존"| MIXED["--mixed"]
+    Q3 --> |"모두 삭제"| HARD["--hard (주의!)"]
+```
+
 
 이것이 가장 핵심적인 판단 기준입니다:
 

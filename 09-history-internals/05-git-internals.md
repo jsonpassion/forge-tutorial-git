@@ -46,6 +46,21 @@ Git은 모든 것을 **4가지 객체 타입**으로 저장합니다:
 > - **Commit** = 배송 전표 (누가, 언제, 무엇을 보냈는지 기록)
 > - **Tag** = VIP 스티커 (특별히 중요한 배송에 붙이는 표시)
 
+> 📊 **그림 1**: Git 객체 간의 관계 — commit이 tree를 가리키고, tree가 blob과 하위 tree를 가리키는 구조
+
+```mermaid
+graph TD
+    C["Commit 객체"] -->|tree| T1["Tree 객체<br/>루트 디렉토리"]
+    C -->|parent| C2["이전 Commit"]
+    T1 -->|blob| B1["Blob<br/>README.md"]
+    T1 -->|blob| B2["Blob<br/>app.js"]
+    T1 -->|tree| T2["Tree 객체<br/>src/"]
+    T2 -->|blob| B3["Blob<br/>index.js"]
+    T2 -->|blob| B4["Blob<br/>utils.js"]
+    TAG["Tag 객체<br/>v1.0"] -->|object| C
+```
+
+
 **Blob** — 파일 내용 저장:
 
 ```bash
@@ -131,6 +146,18 @@ printf 'blob 12\0Hello, Git!' | shasum
 
 해시 `0eb2a8dc5d...`인 객체는 `.git/objects/0e/b2a8dc5d...`에 저장됩니다 (첫 2글자 = 디렉토리, 나머지 38글자 = 파일명). zlib으로 압축됩니다.
 
+> 📊 **그림 2**: SHA 해시 생성과 객체 저장 과정
+
+```mermaid
+flowchart LR
+    A["파일 내용<br/>Hello, Git!"] --> B["헤더 추가<br/>blob 12\0"]
+    B --> C["SHA-1 해시 계산<br/>0eb2a8dc5d..."]
+    C --> D["zlib 압축"]
+    D --> E[".git/objects/<br/>0e/b2a8dc5d..."]
+    style C fill:#f9f,stroke:#333
+```
+
+
 > 💡 **알고 계셨나요?**: Git은 현재 SHA-1을 사용하지만, **SHA-256으로의 전환을 준비하고 있습니다**. Git 2.29부터 `git init --object-format=sha256`으로 SHA-256 저장소를 만들 수 있고, **Git 3.0(2026년 말 목표)**에서는 SHA-256이 새 저장소의 기본값이 될 예정입니다. 기존 SHA-1 저장소와의 호환성도 계속 유지됩니다.
 
 ### 개념 4: Refs — 사람이 읽을 수 있는 포인터
@@ -147,6 +174,18 @@ a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0
 ```
 
 브랜치의 실체는 이게 전부입니다 — 커밋 해시 하나를 담은 **41바이트짜리 텍스트 파일**. 이것이 "Git의 브랜치는 가볍다"라고 하는 이유에요.
+
+> 📊 **그림 3**: HEAD, 브랜치, 커밋의 참조 체인 — 포인터가 포인터를 가리키는 구조
+
+```mermaid
+flowchart LR
+    HEAD[".git/HEAD<br/>ref: refs/heads/main"] -->|심볼릭 참조| MAIN[".git/refs/heads/main<br/>a1b2c3d4..."]
+    MAIN -->|커밋 해시| CM["Commit 객체<br/>a1b2c3d4..."]
+    FEAT[".git/refs/heads/feature<br/>e4f5g6h7..."] -->|커밋 해시| CM2["Commit 객체<br/>e4f5g6h7..."]
+    TAG[".git/refs/tags/v1.0<br/>k0l1m2n3..."] -->|커밋 해시| CM3["Commit 객체<br/>k0l1m2n3..."]
+    style HEAD fill:#ff9,stroke:#333
+```
+
 
 **HEAD — 현재 위치**:
 
@@ -200,6 +239,22 @@ git log --oneline --graph --all
 
 DAG 구조 덕분에 Git은 "이 커밋에서 저 커밋까지 도달할 수 있는가?"를 효율적으로 판단할 수 있고, 이것이 fast-forward 판단, merge-base 계산 등의 기반이 됩니다.
 
+> 📊 **그림 4**: Git 커밋 히스토리의 DAG 구조 — 브랜치 분기와 머지
+
+```mermaid
+gitGraph
+    commit id: "Initial"
+    commit id: "v0.1"
+    branch feature
+    commit id: "API 추가"
+    commit id: "엔드포인트"
+    checkout main
+    commit id: "핫픽스"
+    merge feature id: "Merge"
+    commit id: "릴리스"
+```
+
+
 ### 개념 6: Packfile — 효율적인 저장
 
 매 파일마다 개별 객체(loose object)로 저장하면 공간 낭비가 심합니다. Git은 **packfile**로 이를 해결합니다.
@@ -220,6 +275,28 @@ size-pack: 8420              # packfile 크기 (KB)
 **Packfile의 핵심 원리 — 델타 압축**:
 
 같은 파일의 v1, v2, v3이 있다면, v3의 전체 내용을 저장하고 v2와 v1은 **"v3과의 차이점"**만 저장합니다. 이 "델타 체인" 덕분에 수천 개의 파일 버전도 매우 작은 공간에 들어갑니다.
+
+> 📊 **그림 5**: Packfile 델타 압축 — loose 객체에서 packfile로의 변환
+
+```mermaid
+flowchart TD
+    subgraph LOOSE["Loose 객체들"]
+        V1["blob v1<br/>전체 100KB"]
+        V2["blob v2<br/>전체 102KB"]
+        V3["blob v3<br/>전체 105KB"]
+    end
+    LOOSE -->|"git gc"| PACK
+    subgraph PACK["Packfile"]
+        PV3["blob v3<br/>전체 105KB"]
+        PV2["delta v2<br/>v3 기준 2KB"]
+        PV1["delta v1<br/>v2 기준 3KB"]
+        PV3 --> PV2
+        PV2 --> PV1
+    end
+    style LOOSE fill:#fee,stroke:#c33
+    style PACK fill:#efe,stroke:#3c3
+```
+
 
 ```bash
 # 수동으로 가비지 컬렉션 실행 (loose → packfile 변환)

@@ -27,6 +27,23 @@
 
 전체 흐름을 단계별로 알아볼게요.
 
+> 📊 **그림 1**: 오픈소스 기여 전체 워크플로우
+
+```mermaid
+flowchart TD
+    A["1. Fork<br/>원본 저장소 복사"] --> B["2. Clone<br/>로컬에 다운로드"]
+    B --> C["3. Upstream 동기화<br/>최신 상태 유지"]
+    C --> D["4. 브랜치 생성<br/>작업용 브랜치"]
+    D --> E["5. 코드 수정 + 커밋"]
+    E --> F["6. Push<br/>내 fork에 업로드"]
+    F --> G["7. PR 생성<br/>원본에 머지 요청"]
+    G --> H{"리뷰 통과?"}
+    H -- "피드백" --> E
+    H -- "승인" --> I["8. 머지 완료"]
+    I --> J["9. 정리<br/>동기화 + 브랜치 삭제"]
+```
+
+
 **1단계: 프로젝트 Fork**
 
 ```bash
@@ -42,6 +59,23 @@ gh repo fork owner/awesome-project --clone
 ```
 
 이 한 줄로 세 가지가 자동으로 설정됩니다:
+
+> 📊 **그림 2**: origin, upstream, local의 관계
+
+```mermaid
+graph LR
+    subgraph GitHub
+        U["upstream<br/>owner/awesome-project<br/>(원본 저장소)"] -- "fork" --> O["origin<br/>your-name/awesome-project<br/>(내 fork)"]
+    end
+    subgraph Local
+        L["로컬 저장소<br/>(내 컴퓨터)"]
+    end
+    O -- "git clone" --> L
+    L -- "git push" --> O
+    U -- "git fetch upstream" --> L
+    O -- "PR 생성" --> U
+```
+
 - `origin` → 내 fork (`your-name/awesome-project`)
 - `upstream` → 원본 저장소 (`owner/awesome-project`)
 - 로컬에 코드가 클론됨
@@ -129,6 +163,22 @@ git branch -d fix/typo-in-readme
 ### 개념 2: upstream 동기화의 중요성
 
 fork는 특정 시점의 **스냅샷**입니다. 원본 저장소는 계속 업데이트되지만, 내 fork는 자동으로 동기화되지 않아요. 정기적으로 동기화하지 않으면 내 코드가 뒤처져서 충돌이 발생합니다.
+
+> 📊 **그림 3**: upstream 동기화 흐름
+
+```mermaid
+sequenceDiagram
+    participant U as upstream(원본)
+    participant O as origin(내 fork)
+    participant L as local(내 PC)
+    Note over U: 다른 기여자들이<br/>계속 커밋 추가
+    L->>U: git fetch upstream
+    Note over L: 차이 확인<br/>main..upstream/main
+    L->>L: git merge upstream/main
+    L->>O: git push origin main
+    Note over O,U: 동기화 완료!
+```
+
 
 ```bash
 # 동기화 상태 확인

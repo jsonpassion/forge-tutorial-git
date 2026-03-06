@@ -20,6 +20,17 @@
 
 ### .gitignore란?
 
+> 📊 **그림 1**: git add 시 .gitignore 적용 흐름
+
+```mermaid
+flowchart LR
+    A["git add ."] --> B{"파일이 .gitignore<br/>패턴에 매칭?"}
+    B -- "매칭 O" --> C["무시됨<br/>스테이징 안 됨"]
+    B -- "매칭 X" --> D["스테이징 영역에<br/>추가됨"]
+    D --> E["git commit"]
+```
+
+
 > 💡 **비유**: `.gitignore`는 **택배 기사에게 붙여두는 메모**와 같습니다. "이 방은 무시해주세요", "이 상자는 포장하지 마세요"라고 적어두면, 택배 기사(Git)는 해당 물건을 건드리지 않고 넘어가죠.
 
 `.gitignore`는 프로젝트 루트(또는 하위 디렉토리)에 놓는 **평문 텍스트 파일**입니다. 이 파일에 적힌 패턴과 일치하는 파일은 Git이 무시합니다 — `git status`에도 나타나지 않고, `git add .`에도 포함되지 않습니다.
@@ -95,6 +106,24 @@ temp/*
 
 #### 패턴 부정(!)의 주의점
 
+> 📊 **그림 3**: 패턴 부정(!) — 디렉토리 vs 내부 파일 무시의 차이
+
+```mermaid
+flowchart TD
+    subgraph FAIL["myDir 통째로 무시"]
+        A1["myDir"] -->|"무시"| A2["디렉토리 자체를<br/>건너뜀"]
+        A2 -->|"내부 확인 X"| A3["!myDir/keep.txt<br/>작동 안 함"]
+    end
+    subgraph OK["myDir/* 내부 파일 무시"]
+        B1["myDir/*"] -->|"내부 탐색"| B2["각 파일 확인"]
+        B2 -->|"매칭"| B3["다른 파일 무시"]
+        B2 -->|"예외 적용"| B4["!myDir/keep.txt<br/>추적됨"]
+    end
+    style FAIL fill:#fee,stroke:#c33
+    style OK fill:#efe,stroke:#3c3
+```
+
+
 예외 처리(`!`)를 쓸 때 한 가지 함정이 있습니다. **부모 디렉토리가 통째로 무시되면, 자식 파일의 예외가 작동하지 않습니다**:
 
 ```bash
@@ -110,6 +139,21 @@ myDir/*
 `myDir`을 통째로 무시하면 Git이 디렉토리 안을 아예 들여다보지 않기 때문이죠. `myDir/*`로 디렉토리 **내부의 파일들**을 무시하면, 특정 파일을 예외로 살릴 수 있습니다.
 
 ### 무시 설정의 세 가지 레벨
+
+> 📊 **그림 2**: .gitignore 설정의 세 가지 레벨과 적용 범위
+
+```mermaid
+flowchart TD
+    G["글로벌 설정<br/>~/.gitignore_global"] --> R1["저장소 A"]
+    G --> R2["저장소 B"]
+    G --> R3["저장소 C"]
+    P1[".gitignore<br/>팀과 공유"] --> R1
+    L1[".git/info/exclude<br/>나만 사용"] --> R1
+    style G fill:#f9d,stroke:#333
+    style P1 fill:#9df,stroke:#333
+    style L1 fill:#df9,stroke:#333
+```
+
 
 Git에서 파일을 무시하는 방법은 하나만 있는 게 아닙니다. 상황에 따라 세 가지 레벨을 선택할 수 있어요:
 
@@ -182,6 +226,23 @@ EOF
 > 💡 **알고 계셨나요?**: GitHub의 `github/gitignore` 저장소에는 150개 이상의 템플릿이 있으며, 오픈소스 커뮤니티가 지속적으로 관리합니다. 새 프로젝트를 시작할 때 여기서 자신의 기술 스택에 맞는 템플릿을 가져오면 시간을 크게 아낄 수 있어요.
 
 ### 이미 추적 중인 파일 제거하기
+
+> 📊 **그림 4**: 이미 추적 중인 파일을 .gitignore로 제외하는 과정
+
+```mermaid
+sequenceDiagram
+    participant W as 워킹 디렉토리
+    participant I as Git 인덱스
+    participant R as 저장소
+    Note over W,R: .env가 이미 추적 중인 상태
+    W->>I: git rm --cached .env
+    Note over I: 인덱스에서만 제거<br/>파일은 디스크에 유지
+    W->>W: .gitignore에 .env 추가
+    W->>I: git add .gitignore
+    I->>R: git commit
+    Note over W,R: 이후 .env는 무시됨
+```
+
 
 여기가 가장 **혼동되는 부분**입니다. `.gitignore`에 파일을 추가해도, **이미 Git이 추적 중인 파일은 계속 추적됩니다**. `.gitignore`는 아직 추적되지 않는(Untracked) 파일에만 적용되거든요.
 

@@ -14,6 +14,21 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: 건강한 코드 리뷰 문화의 전체 구조
+
+```mermaid
+flowchart TD
+    A["PR 생성"] --> B["자동 리뷰어 배정<br/>CODEOWNERS"]
+    B --> C["AI 1차 리뷰<br/>Copilot, danger-js"]
+    C --> D["사람 리뷰<br/>설계, 로직 판단"]
+    D --> E{"승인?"}
+    E -->|"Request Changes"| F["코드 수정"]
+    F --> C
+    E -->|"Approve"| G["Branch Protection<br/>필수 조건 확인"]
+    G --> H["머지"]
+```
+
+
 코드 리뷰의 **도구**는 알지만, **문화**가 없는 팀이 많습니다. 리뷰가 병목이 되어 PR이 일주일째 방치되거나, "LGTM(Looks Good To Me)" 한 줄로 대충 넘기거나, 사소한 스타일 지적으로 리뷰가 10라운드까지 가는 상황 — 이 모든 것이 리뷰 문화의 부재에서 비롯됩니다.
 
 구글은 리뷰 가이드라인을 **공개 문서**로 유지합니다. Netflix, Meta, Microsoft 같은 기업들도 자체 리뷰 규칙을 가지고 있죠. 이번 섹션에서 이런 기업들의 노하우를 배워봅시다.
@@ -44,6 +59,20 @@
 | "변수명 별로예요" | "Nit: `data`보다 `userProfile`이면 의도가 더 명확할 것 같습니다" |
 
 **코멘트 접두사 컨벤션**:
+
+> 📊 **그림 2**: 리뷰 코멘트의 심각도 스펙트럼
+
+```mermaid
+graph LR
+    A["Nit:<br/>사소한 제안<br/>선택 반영"] --> B["Question:<br/>이해를 위한 질문<br/>답변 필수"]
+    B --> C["Suggestion:<br/>구체적 대안<br/>수용 권장"]
+    C --> D["Blocking:<br/>필수 수정<br/>머지 차단"]
+    style A fill:#e8f5e9,stroke:#4caf50
+    style B fill:#fff3e0,stroke:#ff9800
+    style C fill:#fff3e0,stroke:#ff9800
+    style D fill:#ffebee,stroke:#f44336
+```
+
 
 | 접두사 | 의미 | 반영 의무 |
 |--------|------|----------|
@@ -105,6 +134,31 @@ go.mod               @tech-lead
 > ⚠️ **흔한 오해**: "CODEOWNERS에 등록된 사람이 Approve하지 않으면 머지할 수 없다" — 기본적으로는 **그렇지 않습니다**. CODEOWNERS를 강제하려면 Branch Protection Rule에서 **"Require review from Code Owners"** 옵션을 켜야 합니다. 이 설정 없이는 CODEOWNERS는 자동 리뷰 요청만 할 뿐, 머지를 막지는 않아요.
 
 ### 개념 3: 리뷰 자동화 도구
+
+> 📊 **그림 3**: 리뷰 자동화 도구의 역할 분담
+
+```mermaid
+flowchart LR
+    subgraph 자동["자동화 영역"]
+        A["CODEOWNERS<br/>리뷰어 배정"] 
+        B["danger-js<br/>PR 규칙 검증"]
+        C["Copilot<br/>코드 분석"]
+        D["CI/CD<br/>빌드, 테스트"]
+    end
+    subgraph 사람["사람 영역"]
+        E["설계 적절성"]
+        F["비즈니스 로직"]
+        G["유지보수성"]
+    end
+    A --> H["PR"]
+    B --> H
+    C --> H
+    D --> H
+    H --> E
+    H --> F
+    H --> G
+```
+
 
 사람의 리뷰 전에 **기계가 먼저** 확인할 수 있는 것들이 많습니다. [빌드와 테스트 자동화](../10-github-actions/03-ci.md)에서 배운 CI와 결합하면 효과가 배가됩니다.
 
@@ -208,6 +262,22 @@ jobs:
 - 스크린샷이 필요한 UI 변경이라면 첨부했는가?
 
 ### 개념 5: Branch Protection으로 리뷰 강제
+
+> 📊 **그림 4**: Branch Protection 머지 조건 체크 흐름
+
+```mermaid
+flowchart TD
+    A["PR 머지 요청"] --> B{"필수 승인 수<br/>충족?"}
+    B -->|"X"| C["머지 차단"]
+    B -->|"O"| D{"CODEOWNERS<br/>승인?"}
+    D -->|"X"| C
+    D -->|"O"| E{"CI 상태 검사<br/>통과?"}
+    E -->|"X"| C
+    E -->|"O"| F{"Stale 리뷰<br/>없음?"}
+    F -->|"X"| C
+    F -->|"O"| G["머지 허용"]
+```
+
 
 리뷰 문화를 **규칙으로 강제**하려면 Branch Protection이 필수입니다:
 

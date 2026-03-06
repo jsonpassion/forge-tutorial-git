@@ -15,6 +15,22 @@
 
 ## 왜 알아야 할까?
 
+> 📊 **그림 1**: push와 pull의 전체 흐름
+
+```mermaid
+flowchart LR
+    subgraph 로컬["로컬 저장소"]
+        A["작업 디렉토리"] --> B["스테이징"]
+        B --> C["로컬 커밋"]
+    end
+    subgraph 원격["원격 저장소<br/>origin"]
+        D["원격 커밋"]
+    end
+    C -->|"git push"| D
+    D -->|"git pull<br/>(fetch + merge)"| C
+```
+
+
 `push`와 `pull`은 **매일 수십 번 사용하는 명령어**입니다. "코드 올려놨어", "최신 코드 받아와"라는 대화가 곧 push와 pull이죠. 하지만 단순해 보이는 이 명령어도 tracking branch, fast-forward, 충돌 같은 개념을 모르면 예상치 못한 에러 앞에서 멘붕에 빠지기 쉽습니다.
 
 ## 핵심 개념
@@ -65,6 +81,23 @@ hint: (e.g., 'git pull ...') before pushing again.
 
 이 에러가 뜨면 **pull을 먼저** 해야 합니다. 원격의 변경사항을 받아서 합친 후에 push할 수 있어요.
 
+> 📊 **그림 5**: push 거부 시 해결 흐름
+
+```mermaid
+sequenceDiagram
+    participant L as 로컬
+    participant R as 원격 (origin)
+    Note over R: 다른 사람이 커밋 push
+    L->>R: git push
+    R-->>L: rejected (fetch first)
+    L->>R: git pull (fetch + merge)
+    R-->>L: 원격 변경사항 수신
+    Note over L: 병합 또는 충돌 해결
+    L->>R: git push
+    R-->>L: 성공!
+```
+
+
 > ⚠️ **흔한 오해**: "push가 안 되면 `--force`를 쓰면 된다" — 절대 안 됩니다! `--force`는 원격의 커밋을 **덮어써버리기** 때문에 다른 팀원의 작업이 사라질 수 있습니다. 정말 불가피한 경우에만 `--force-with-lease`를 사용하세요.
 
 ```bash
@@ -80,6 +113,20 @@ git push --force-with-lease
 > 💡 **비유**: pull은 **우편함에서 편지를 꺼내 읽는 것**입니다. 다른 사람이 보낸 편지(커밋)를 가져와서 내 작업과 합치는 거죠.
 
 `git pull`은 실은 **두 가지 작업을 한 번에** 합니다:
+
+> 📊 **그림 2**: git pull = fetch + merge
+
+```mermaid
+flowchart TD
+    A["git pull"] --> B["1. git fetch<br/>원격 변경사항 다운로드"]
+    B --> C["origin/main 갱신"]
+    C --> D["2. git merge<br/>현재 브랜치에 병합"]
+    D --> E["로컬 main 갱신 완료"]
+    A2["git pull --rebase"] --> B
+    C --> D2["2. git rebase<br/>내 커밋을 원격 위에 재배치"]
+    D2 --> E
+```
+
 
 1. `git fetch` — 원격의 변경사항을 다운로드
 2. `git merge` — 다운로드한 변경사항을 현재 브랜치에 병합
@@ -122,6 +169,26 @@ git config --global pull.rebase true
 
 tracking branch는 특정 원격 브랜치를 **자동으로 따라가도록 설정된 로컬 브랜치**입니다.
 
+> 📊 **그림 3**: Tracking Branch 관계
+
+```mermaid
+graph LR
+    subgraph 로컬["로컬 브랜치"]
+        L1["main"]
+        L2["feature-login"]
+        L3["experiment"]
+    end
+    subgraph 원격["원격 브랜치 (origin)"]
+        R1["origin/main"]
+        R2["origin/feature-login"]
+    end
+    L1 -.->|"tracking"| R1
+    L2 -.->|"tracking<br/>ahead 2"| R2
+    L3 -.-x|"연결 없음"| R2
+    style L3 stroke-dasharray: 5 5
+```
+
+
 ```bash
 # tracking 관계 확인
 git branch -vv
@@ -156,6 +223,24 @@ git switch feature-login
 ### 개념 4: pull 시 충돌 해결
 
 pull 중 같은 파일의 같은 부분을 수정했다면 충돌이 발생합니다:
+
+> 📊 **그림 4**: pull 충돌 해결 프로세스
+
+```mermaid
+flowchart TD
+    A["git pull"] --> B{"충돌 발생?"}
+    B -->|"No"| C["자동 병합 완료"]
+    B -->|"Yes"| D["CONFLICT 표시"]
+    D --> E["git status로<br/>충돌 파일 확인"]
+    E --> F["충돌 마커 수동 해결"]
+    F --> G["git add 파일"]
+    G --> H{"merge? rebase?"}
+    H -->|"merge"| I["git commit"]
+    H -->|"rebase"| J["git rebase --continue"]
+    I --> K["git push"]
+    J --> K
+```
+
 
 ```bash
 git pull
